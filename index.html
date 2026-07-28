@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="description"
+    content="DuplexGen: Adaptive Synthesis of Human-AI Turn-Taking Dialogues." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:title" content="DuplexGen: Adaptive Synthesis of Human-AI Turn-Taking Dialogues" />
+  <meta property="og:description"
+    content="A human-calibrated framework that generates synthetic human-AI dialogues with scenario-adaptive turn-taking." />
+  <title>DuplexGen</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/bulma.min.css" />
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
+  <link rel="stylesheet" href="static/css/index.css" />
+
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/wavesurfer.js"></script>
+  <script src="static/js/comparison_transcripts.js"></script>
+  <script src="static/js/sample_transcripts.js"></script>
+
+  <style>
+    .author-block { margin-right: 0.75rem; }
+    .scenario-card { height: 100%; }
+    .scenario-tag { font-weight: 600; }
+    .waveform { width: 100%; }
+    .sample-title { margin-bottom: 0.25rem; }
+    .stage-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2rem; height: 2rem; border-radius: 999px;
+      background: #3273dc; color: #fff; font-weight: 700; margin-right: 0.6rem;
+    }
+    .pipeline-stage { margin-bottom: 1rem; }
+
+    /* Model-comparison accordion */
+    #comparison-accordion { margin-top: 1.5rem; }
+    .cmp-panel {
+      background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
+      margin-bottom: 0.75rem; overflow: hidden;
+    }
+    .cmp-panel-header {
+      width: 100%; text-align: left; cursor: pointer; border: none;
+      background: #fff; padding: 1rem 1.25rem; display: flex; align-items: center;
+      gap: 0.6rem; font-size: 1.1rem; font-weight: 600; color: #363636;
+    }
+    .cmp-panel-header:hover { background: #f5f8ff; }
+    .cmp-panel.is-open .cmp-panel-header { border-bottom: 1px solid #eee; }
+    .cmp-panel-header .chevron {
+      margin-left: auto; transition: transform 0.2s ease; color: #3273dc; flex: none;
+    }
+    .cmp-panel.is-open .cmp-panel-header .chevron { transform: rotate(90deg); }
+    .cmp-panel-header .role-pill {
+      display: inline-block; background: #eef2fb; color: #3273dc;
+      border-radius: 999px; padding: 0.1rem 0.7rem; font-size: 0.8rem;
+      font-weight: 600; vertical-align: middle;
+    }
+    .cmp-panel-body { display: none; padding: 1rem 1.25rem 1.25rem; }
+    .cmp-panel.is-open .cmp-panel-body { display: block; }
+    .cmp-context-text { color: #444; margin-bottom: 1rem; }
+    .cmp-card {
+      background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
+      padding: 0.9rem; height: 100%; display: flex; flex-direction: column;
+    }
+    .cmp-card.is-ours { border: 2px solid #3273dc; box-shadow: 0 2px 10px rgba(50,115,220,0.12); }
+    .cmp-model { font-weight: 700; font-size: 1.05rem; }
+    .cmp-badge {
+      display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem;
+      font-size: 0.7rem; font-weight: 600; margin-left: 0.4rem; vertical-align: middle;
+    }
+    .cmp-badge.ours { background: #3273dc; color: #fff; }
+    .cmp-wave-label { font-size: 0.7rem; color: #999; margin-bottom: 0.15rem; }
+    .cmp-waveform { width: 100%; }
+    .cmp-play, .wave-play {
+      display: block; width: 100%; margin-top: 0.4rem; border: none;
+      background: #3273dc; color: #fff; border-radius: 6px;
+      padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem;
+    }
+    .cmp-play:hover, .wave-play:hover { background: #2759bb; }
+    /* Selectable text transcript (bubbles) */
+    .cmp-transcript {
+      margin-top: 0.7rem; border-top: 1px solid #eee; padding-top: 0.6rem;
+    }
+    .cmp-transcript > .tr-caption { font-size: 0.7rem; color: #999; margin-bottom: 0.5rem; }
+    .cmp-tr { max-height: 460px; overflow-y: auto; padding-right: 0.3rem; }
+    .cmp-turn { display: flex; margin-bottom: 0.5rem; }
+    .cmp-turn.ai { justify-content: flex-end; }
+    .cmp-bubble {
+      max-width: 88%; border-radius: 12px; padding: 0.45rem 0.7rem;
+      border: 1px solid #ccc; font-size: 0.82rem; line-height: 1.35;
+    }
+    .cmp-turn.human .cmp-bubble { background: #fff; border-color: #d2d2d2; }
+    .cmp-turn.ai .cmp-bubble { background: #ebebeb; border-color: #c2c2c2; }
+    .cmp-bubble .who {
+      display: block; font-size: 0.66rem; font-weight: 700; color: #6e6e6e;
+      margin-bottom: 0.15rem; letter-spacing: 0.01em;
+    }
+    .cmp-bubble .txt { color: #1a1a1a; }
+    .cmp-tr-empty { font-size: 0.8rem; color: #b0392f; font-style: italic; padding: 0.4rem 0; }
+    /* Channel color-coding: human = red, AI = blue,
+       matching the dual-channel waveform colors. */
+    .lbl-ai { color: #1976D2; font-weight: 700; }
+    .lbl-human { color: #D32F2F; font-weight: 700; }
+    .cmp-bubble .who.lbl-ai { color: #1976D2; }
+    .cmp-bubble .who.lbl-human { color: #D32F2F; }
+  </style>
+</head>
+
+<body>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">DuplexGen</h1>
+            <h2 class="subtitle is-3">Adaptive Synthesis of Human&ndash;AI Turn-Taking Dialogues</h2>
+
+            <div class="is-size-5 publication-authors" style="margin-top:1rem;">
+              <span class="author-block">Takyoung Kim<sup>1</sup><sup>*</sup>,</span>
+              <span class="author-block">Kang-wook Kim<sup>2,4</sup><sup>*</sup>,</span>
+              <span class="author-block">Sang Hoon Woo<sup>2,5</sup>,</span>
+              <br>
+              <span class="author-block">Julia Hirschberg<sup>3</sup>,</span>
+              <span class="author-block">Gunhee Kim<sup>2</sup>,</span>
+              <span class="author-block">Dilek Hakkani-T&uuml;r<sup>1</sup></span>
+            </div>
+
+            <div class="is-size-6 publication-authors" style="margin-top:0.5rem;">
+              <span class="author-block"><sup>1</sup>University of Illinois Urbana-Champaign</span>&nbsp;&nbsp;
+              <span class="author-block"><sup>2</sup>Seoul National University</span>&nbsp;&nbsp;
+              <span class="author-block"><sup>3</sup>Columbia University</span>&nbsp;&nbsp;
+              <br>
+              <span class="author-block"><sup>4</sup>University of California, Berkeley</span>&nbsp;&nbsp;
+              <span class="author-block"><sup>5</sup>Georgia Institute of Technology</span>
+            </div>
+
+            <div class="is-size-6 publication-authors" style="margin-top:0.35rem;">
+              <span class="author-block"><sup>*</sup>Equal contribution</span>
+            </div>
+
+            <!-- Resource buttons -->
+            <div class="column has-text-centered" style="margin-top:1.5rem;">
+              <div class="publication-links">
+                <!-- TODO(authors): replace href="#" with the arXiv / ACL Anthology URL when available -->
+                <span class="link-block">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://github.com/duplexgen/duplexgen-code"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://github.com/duplexgen/personaplex-finetune"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-microchip"></i></span>
+                    <span>Finetune</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-corpus"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">&#129303;</span>
+                    <span>Corpus</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">&#129303;</span>
+                    <span>Spoken</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Effective spoken AI assistants must decide not only <em>what</em> to say, but also
+              <em>when</em> to say it. Although appropriate AI turn-taking behavior is inherently
+              scenario-dependent, current approaches fall short in complementary ways:
+              human&ndash;human speech corpora capture natural timing phenomena but provide little
+              AI-role grounding or scenario-specific norms, while heuristic or prompted synthesis
+              methods inject turn-taking behaviors without grounding them in human preferences.
+              We introduce <strong>DuplexGen</strong>, a human-calibrated framework that generates
+              synthetic human&ndash;AI dialogues with scenario-adaptive turn-taking. DuplexGen
+              transforms text dialogues into spoken-style transcripts, marks candidate
+              intra-utterance action slots, and calibrates LLM predictions using a small set of
+              slot-level human preference annotations. Across six tasks spanning cooperative and
+              competitive interactions, DuplexGen aligns substantially more closely with human
+              preferences than uncalibrated prompting and models trained solely on generic
+              human&ndash;human data; furthermore, a full-duplex model trained on
+              DuplexGen-generated data exhibits distinctive, human-preferred turn-taking behaviors
+              across scenarios.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="section" style="background-color:#fafafa;">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">The DuplexGen Framework</h2>
+      <p class="subtitle is-6 has-text-centered">
+        Four stages turn clean text dialogues into human-calibrated, scenario-adaptive
+        turn-taking dialogues.
+      </p>
+      <div class="content" style="margin-top:1.5rem;">
+        <div class="pipeline-stage">
+          <span class="stage-number">1</span><strong>Spoken-Style Dialogue Conversion.</strong>
+          An LLM rewrites text-based dialogues into spoken-style transcripts, removing text-only
+          artifacts and adding natural disfluencies and fillers.
+        </div>
+        <div class="pipeline-stage">
+          <span class="stage-number">2</span><strong>Turn-Taking Slot Identification.</strong>
+          Heuristics and an LLM mark candidate intra-utterance action slots &mdash; the points
+          where the AI could take the floor, backchannel, or keep listening.
+        </div>
+        <div class="pipeline-stage">
+          <span class="stage-number">3</span><strong>Scenario-Specific Calibration.</strong>
+          A small set of slot-level human preference annotations calibrates the LLM's per-slot
+          action distribution via KL-divergence soft-label fine-tuning, so predictions reflect
+          human preference rather than raw model confidence.
+        </div>
+        <div class="pipeline-stage">
+          <span class="stage-number">4</span><strong>Turn-Taking Dialogue Synthesis.</strong>
+          The calibrated predictor is applied slot-by-slot to insert the AI's turn-taking
+          behavior &mdash; <strong>floor-taking</strong>, <strong>backchanneling</strong>, or
+          <strong>silence</strong> &mdash; yielding a full turn-taking dialogue.
+        </div>
+        <p class="is-size-7" style="margin-top:0.75rem;color:#666;">
+          For listening tests, synthesized dialogues are rendered to full-duplex speech with
+          <a href="https://github.com/resemble-ai/chatterbox">Chatterbox</a> TTS.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scenario taxonomy -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Six Conversational Scenarios</h2>
+      <p class="subtitle is-6 has-text-centered">
+        Cooperative and competitive human&ndash;AI tasks, each grounded in an established dialogue
+        dataset. Turn-taking norms differ significantly across them.
+      </p>
+
+      <h3 class="title is-5 has-text-info" style="margin-top:1rem;">Cooperative</h3>
+      <div class="columns">
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-info">TEA &mdash; Socratic Teaching</p>
+            <p>Guided knowledge discovery, where the tutor leads a student through a problem
+              rather than giving the answer.</p>
+            <p class="is-size-7 has-text-grey">Source: SocraticLM</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-info">PLN &mdash; Mixed-Initiative Planning</p>
+            <p>Collaborative goal completion, gathering information and comparing options toward
+              a plan.</p>
+            <p class="is-size-7 has-text-grey">Source: MultiWOZ</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-info">INT &mdash; Interview</p>
+            <p>Structured information elicitation through open-ended questions and follow-up
+              probing.</p>
+            <p class="is-size-7 has-text-grey">Source: Anthropic Interviewer</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="title is-5 has-text-danger" style="margin-top:1rem;">Competitive</h3>
+      <div class="columns">
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-danger">NEG &mdash; Negotiation</p>
+            <p>Resource allocation under conflict &mdash; bargaining over price and terms toward
+              a deal.</p>
+            <p class="is-size-7 has-text-grey">Source: CraigslistBargain</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-danger">PER &mdash; Persuasion</p>
+            <p>Attitude-change attempts, steering the other party toward a position or action.</p>
+            <p class="is-size-7 has-text-grey">Source: DailyPersuasion</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box scenario-card">
+            <p class="scenario-tag has-text-danger">SOC &mdash; Social Chat</p>
+            <p>Peer-like conversation with everyday, emotionally charged give-and-take.</p>
+            <p class="is-size-7 has-text-grey">Source: SODA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audio samples -->
+  <section class="section" style="background-color:#fafafa;">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">DuplexGen Corpus Samples</h2>
+      <p class="subtitle is-6 has-text-centered">
+        One DuplexGen-synthesized full-duplex dialogue per scenario, rendered with Chatterbox TTS.
+        The full corpus is on the
+        <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken">Hub</a>.
+      </p>
+
+      <div class="columns is-multiline" style="margin-top:1rem;">
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>TEA</strong> &mdash; Socratic Teaching</p>
+            <div id="wave_TEA" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_TEA"></div></div>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>PLN</strong> &mdash; Mixed-Initiative Planning</p>
+            <div id="wave_PLN" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_PLN"></div></div>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>INT</strong> &mdash; Interview</p>
+            <div id="wave_INT" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_INT"></div></div>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>NEG</strong> &mdash; Negotiation</p>
+            <div id="wave_NEG" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_NEG"></div></div>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>PER</strong> &mdash; Persuasion</p>
+            <div id="wave_PER" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_PER"></div></div>
+          </div>
+        </div>
+        <div class="column is-half">
+          <div class="cmp-card">
+            <p class="sample-title"><strong>SOC</strong> &mdash; Social Chat</p>
+            <div id="wave_SOC" class="waveform"></div>
+            <div class="cmp-transcript"><div id="tr_SOC"></div></div>
+          </div>
+        </div>
+      </div>
+      <p class="has-text-centered is-size-7" style="margin-top:0.5rem;">
+        Each waveform is dual-channel &mdash; <strong>top:</strong> <span class="lbl-ai">AI assistant</span>,
+        <strong>bottom:</strong> <span class="lbl-human">human</span>. Click a waveform to play.
+      </p>
+    </div>
+  </section>
+
+  <!-- Model comparison -->
+  <section class="section">
+    <div class="container is-max-widescreen">
+      <h2 class="title is-3 has-text-centered">Full-Duplex Model: Baselines vs. PP-DG</h2>
+      <p class="subtitle is-6 has-text-centered">
+        Live full-duplex dialogues from two baselines (<strong>Moshi</strong>,
+        <strong>PersonaPlex</strong>) and <strong>PP-DG</strong> &mdash; PersonaPlex
+        fine-tuned on DuplexGen-synthesized data. In our listening test (three human
+        raters per dialogue), PP-DG's scenario-adaptive turn-taking was rated the most
+        natural, significantly ahead of both baselines. Click a scenario to expand it
+        and listen for the difference.
+      </p>
+
+      <div id="comparison-accordion">
+        <!-- panels injected by JS -->
+      </div>
+
+      <p class="has-text-centered is-size-7" style="margin-top:0.75rem;">
+        Each waveform is dual-channel &mdash; <strong>top:</strong> <span class="lbl-human">user simulator</span>,
+        <strong>bottom:</strong> <span class="lbl-ai">AI assistant</span>. The user side is
+        played by a user simulator, not a live human, so that all three models face the same
+        interlocutor. Click a waveform or the play button to listen.
+      </p>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="section" style="background-color:#fafafa;">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Key Findings</h2>
+      <!-- (background alternates: Audio #fafafa, Comparison white, Results #fafafa) -->
+      <div class="content has-text-justified">
+        <p>
+          <strong>Turn-taking preferences differ by scenario.</strong> Human annotations show
+          significantly different action distributions across nearly all scenario pairs &mdash;
+          backchanneling is more frequent in cooperative tasks, floor-taking in competitive ones.
+        </p>
+        <p>
+          <strong>Calibration recovers human-like turn-taking.</strong> DuplexGen's calibrated
+          predictions align far more closely with human slot-level preferences (lowest KL
+          divergence) than uncalibrated prompting or predictors trained solely on generic
+          human&ndash;human speech, which over-predict silence and under-predict backchannels.
+        </p>
+        <p>
+          <strong>Synthesized data shapes full-duplex behavior.</strong> A full-duplex model
+          (<strong>PP-DG</strong>) fine-tuned on DuplexGen dialogues exhibits distinctive,
+          human-preferred turn-taking that adapts per scenario, and is rated significantly more
+          natural than the Moshi and PersonaPlex baselines.
+        </p>
+        <p>
+          See the <a href="https://github.com/duplexgen/duplexgen-code">paper and code</a> for the
+          full evaluation protocol, baselines, and per-scenario numbers.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BibTeX -->
+  <section class="section" id="BibTeX" style="background-color:#fafafa;">
+    <div class="container is-max-desktop content">
+      <h2 class="title is-3">BibTeX</h2>
+      <pre><code>@misc{kim2026duplexgen,
+  title  = {DuplexGen: Adaptive Synthesis of Human-AI Turn-Taking Dialogues},
+  author = {Kim, Takyoung and Kim, Kang-wook and Woo, Sang Hoon and
+            Hirschberg, Julia and Kim, Gunhee and Hakkani-T{\"u}r, Dilek},
+  year   = {2026}
+}</code></pre>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8 has-text-centered">
+          <div class="content">
+            <p>
+              <!-- TODO(authors): replace href="#" with the arXiv / ACL Anthology URL -->
+              <a href="#">Paper</a> &middot;
+              <a href="https://github.com/duplexgen/duplexgen-code">Code</a> &middot;
+              <a href="https://github.com/duplexgen/personaplex-finetune">Finetune</a> &middot;
+              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-corpus">Corpus</a> &middot;
+              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken">Spoken</a> &middot;
+              <a href="https://duplexgen.github.io/">Demo</a>
+            </p>
+            <p>
+              Page template adapted from the
+              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a>
+              (Nerfies). Licensed under
+              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function createWaveSurfer(containerId, audioPath) {
+      const ws = WaveSurfer.create({
+        container: containerId,
+        waveColor: "#b5c7e6",
+        progressColor: "#3273dc",
+        height: 48,
+        responsive: true,
+        normalize: true,
+        splitChannels: true,
+      });
+      ws.load(audioPath);
+      const containerEl = document.querySelector(containerId);
+      if (containerEl) {
+        containerEl.style.cursor = "pointer";
+        containerEl.addEventListener("click", () => ws.playPause());
+        const btn = document.createElement("button");
+        btn.className = "wave-play";
+        btn.innerHTML = '<i class="fa fa-play"></i>&nbsp;/&nbsp;<i class="fa fa-pause"></i> Play';
+        btn.addEventListener("click", () => ws.playPause());
+        containerEl.insertAdjacentElement("afterend", btn);
+      }
+      return ws;
+    }
+
+    var scenarios = ["TEA", "PLN", "INT", "NEG", "PER", "SOC"];
+    var players = {};
+    scenarios.forEach((code) => {
+      players[code] = createWaveSurfer(`#wave_${code}`, `static/audio/${code}.mp3`);
+    });
+
+    // Render the ASR transcript for each corpus sample as selectable chat bubbles,
+    // reusing the comparison-section renderer and bubble styling.
+    scenarios.forEach((code) => {
+      var el = document.getElementById("tr_" + code);
+      if (el) el.innerHTML = renderTranscript({ code: code }, null, window.SAMPLE_TRANSCRIPTS);
+    });
+
+    /* ---- Baselines vs. PP-DG comparison carousel ---- */
+    // One representative dialogue per scenario. In the human evaluation (3
+    // annotators per clip), PP-DG's turn-taking was rated most natural on average
+    // across all six scenarios; these panels let readers hear the difference.
+    var CMP_SCENARIOS = [
+      {
+        code: "TEA", name: "Socratic Teaching", role: "AI tutor",
+        context: "Guiding a student through a GSM8K word problem &mdash; how many weeks it takes " +
+                 "Janet to save $1,000 at $25/hour &mdash; one reasoning step at a time."
+      },
+      {
+        code: "PLN", name: "Task Planning", role: "AI booking agent",
+        context: "Finding an inexpensive South African restaurant in Cambridge &mdash; offering " +
+                 "options, settling on a time, then reading the booking back to confirm it."
+      },
+      {
+        code: "INT", name: "Interview", role: "AI interviewer",
+        context: "A user-research interview probing how the interviewee uses AI in their daily " +
+                 "sailing-instruction routine."
+      },
+      {
+        code: "NEG", name: "Negotiation", role: "AI negotiator",
+        context: "Haggling over the price of a used mid-century-modern walnut dresser, probing " +
+                 "its condition and wear."
+      },
+      {
+        code: "PER", name: "Persuasion", role: "AI persuader",
+        context: "A back-and-forth on whether AI really benefits businesses, addressing a " +
+                 "skeptic's doubts about job loss and real-world value."
+      },
+      {
+        code: "SOC", name: "Social Chat", role: "AI chat companion",
+        context: "An emotional-support call &mdash; helping a distressed caller talk through an " +
+                 "unfair, hurtful conflict with a co-worker."
+      }
+    ];
+    var CMP_MODELS = [
+      { key: "moshi", name: "Moshi", kind: "baseline" },
+      { key: "pp", name: "PersonaPlex", kind: "baseline" },
+      { key: "ppft", name: "PP-DG", kind: "ours", label: "Ours" }
+    ];
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    // m:ss[.s] — tenths matter here: overlaps and backchannels are often shorter
+    // than a second, and whole-second rounding collapsed them to empty spans.
+    // A trailing ".0" carries no information, so drop it for readability.
+    function fmtTime(sec) {
+      // Round to tenths *before* splitting, so 9.96 pads as 0:10 rather than 0:010.
+      var t = Math.round(sec * 10) / 10;
+      var m = Math.floor(t / 60), s = t - 60 * m;
+      return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(/\.0$/, "");
+    }
+    // Render one cell's transcript segments as selectable chat bubbles.
+    // For the comparison section, pass a model key (mkey) to index CMP_TRANSCRIPTS.
+    // For corpus samples, pass mkey=null and the SAMPLE_TRANSCRIPTS store, whose
+    // entries are keyed directly by scenario code.
+    function renderTranscript(sc, mkey, store) {
+      var byCat = store || window.CMP_TRANSCRIPTS || {};
+      var entry = byCat[sc.code];
+      var segs = (mkey == null ? entry : (entry && entry[mkey])) || [];
+      if (!segs.length) {
+        return '<div class="cmp-tr-empty">No intelligible speech detected.</div>';
+      }
+      var out = '<div class="cmp-tr">';
+      segs.forEach(function (seg) {
+        var isAI = seg.speaker === "AI Assistant";
+        // In the comparison section (mkey != null) the user side is a user simulator
+        // rather than a live human; corpus samples keep the "Human" label.
+        var who = (!isAI && mkey != null) ? "User Simulator" : seg.speaker;
+        var head = who + "  [" + fmtTime(seg.start) + " – " + fmtTime(seg.end) + "]";
+        out += '<div class="cmp-turn ' + (isAI ? "ai" : "human") + '">' +
+               '<div class="cmp-bubble"><span class="who ' + (isAI ? "lbl-ai" : "lbl-human") + '">' +
+               escapeHtml(head) + '</span>' +
+               '<span class="txt">' + escapeHtml(seg.text) + '</span></div></div>';
+      });
+      out += '</div>';
+      return out;
+    }
+
+    function createSplitWaveSurfer(containerSel, audioPath) {
+      var ws = WaveSurfer.create({
+        container: containerSel,
+        waveColor: "#b5c7e6",
+        progressColor: "#3273dc",
+        height: 42,
+        responsive: true,
+        normalize: true,
+        splitChannels: true
+      });
+      ws.load(audioPath);
+      return ws;
+    }
+
+    var cmpContainer = document.getElementById("comparison-accordion");
+    var cmpPlayers = {};
+    var initedPanels = {};
+
+    // Build the three model cards + waveforms for a panel the first time it opens.
+    // (Waveforms need a laid-out, visible container to measure their width, so we
+    //  defer creation until the panel is actually expanded.)
+    function initPanel(sc) {
+      if (initedPanels[sc.code]) return;
+      initedPanels[sc.code] = true;
+      CMP_MODELS.forEach(function (m) {
+        var wid = "cmpwave_" + sc.code + "_" + m.key;
+        var pid = "cmpplay_" + sc.code + "_" + m.key;
+        var ws = createSplitWaveSurfer("#" + wid, "static/demo/" + sc.code + "/" + m.key + ".mp3");
+        cmpPlayers[wid] = ws;
+        var waveEl = document.getElementById(wid);
+        if (waveEl) { waveEl.style.cursor = "pointer"; waveEl.addEventListener("click", function () { ws.playPause(); }); }
+        var btn = document.getElementById(pid);
+        if (btn) { btn.addEventListener("click", function () { ws.playPause(); }); }
+      });
+    }
+
+    CMP_SCENARIOS.forEach(function (sc, idx) {
+      var tagClass = (["NEG", "PER", "SOC"].indexOf(sc.code) >= 0) ? "has-text-danger" : "has-text-info";
+      var panel = document.createElement("div");
+      panel.className = "cmp-panel" + (idx === 0 ? " is-open" : "");
+
+      var html = "";
+      html += '<button type="button" class="cmp-panel-header">';
+      html += '  <span class="' + tagClass + '">' + sc.code + ' &mdash; ' + sc.name + '</span>';
+      html += '  <span class="role-pill">' + sc.role + '</span>';
+      html += '  <i class="fa fa-chevron-right chevron"></i>';
+      html += '</button>';
+      html += '<div class="cmp-panel-body">';
+      html += '  <p class="cmp-context-text">' + sc.context + '</p>';
+      html += '  <div class="columns">';
+      CMP_MODELS.forEach(function (m) {
+        var wid = "cmpwave_" + sc.code + "_" + m.key;
+        var pid = "cmpplay_" + sc.code + "_" + m.key;
+        html += '<div class="column">';
+        html += '  <div class="cmp-card ' + (m.kind === "ours" ? "is-ours" : "") + '">';
+        html += '    <div><span class="cmp-model">' + m.name + '</span>' +
+                (m.label ? '<span class="cmp-badge ours">' + m.label + '</span>' : '') + '</div>';
+        html += '    <div class="cmp-wave-label">top: <span class="lbl-human">user simulator</span> &nbsp;&middot;&nbsp; bottom: <span class="lbl-ai">AI</span></div>';
+        html += '    <div id="' + wid + '" class="cmp-waveform"></div>';
+        html += '    <button id="' + pid + '" class="cmp-play">' +
+                '<i class="fa fa-play"></i>&nbsp;/&nbsp;<i class="fa fa-pause"></i> Play</button>';
+        html += '    <div class="cmp-transcript">';
+        html += '      <p class="tr-caption">Transcript (per-channel ASR, WhisperX large-v3):</p>';
+        html += renderTranscript(sc, m.key);
+        html += '    </div>';
+        html += '  </div>';
+        html += '</div>';
+      });
+      html += '  </div>';
+      html += '</div>';
+      panel.innerHTML = html;
+      cmpContainer.appendChild(panel);
+
+      var header = panel.querySelector(".cmp-panel-header");
+      header.addEventListener("click", function () {
+        var opening = !panel.classList.contains("is-open");
+        panel.classList.toggle("is-open");
+        if (opening) initPanel(sc);
+      });
+    });
+
+    // First panel starts open, so draw its waveforms now.
+    if (CMP_SCENARIOS.length) initPanel(CMP_SCENARIOS[0]);
+  </script>
+</body>
+
+</html>
