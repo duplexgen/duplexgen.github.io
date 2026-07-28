@@ -195,22 +195,16 @@
           <h2 class="title is-3">Abstract</h2>
           <div class="content has-text-justified">
             <p>
-              Effective spoken AI assistants must decide not only <em>what</em> to say, but also
-              <em>when</em> to say it. Although appropriate AI turn-taking behavior is inherently
-              scenario-dependent, current approaches fall short in complementary ways:
-              human&ndash;human speech corpora capture natural timing phenomena but provide little
-              AI-role grounding or scenario-specific norms, while heuristic or prompted synthesis
-              methods inject turn-taking behaviors without grounding them in human preferences.
-              We introduce <strong>DuplexGen</strong>, a human-calibrated framework that generates
-              synthetic human&ndash;AI dialogues with scenario-adaptive turn-taking. DuplexGen
-              transforms text dialogues into spoken-style transcripts, marks candidate
-              intra-utterance action slots, and calibrates LLM predictions using a small set of
-              slot-level human preference annotations. Across six tasks spanning cooperative and
-              competitive interactions, DuplexGen aligns substantially more closely with human
-              preferences than uncalibrated prompting and models trained solely on generic
-              human&ndash;human data; furthermore, a full-duplex model trained on
-              DuplexGen-generated data exhibits distinctive, human-preferred turn-taking behaviors
-              across scenarios.
+              Turn-taking is a central component of full-duplex interaction. Which turn-taking behaviors are appropriate varies with the scenario, 
+              yet current models apply a single norm regardless of context. This limitation originates in their training data: 
+              human-human speech corpora capture natural timing phenomena but provide little role grounding or scenario-specific norms, 
+              while heuristic or prompted synthesis methods inject turn-taking behaviors without basing them on human preferences. 
+              We introduce <strong>DuplexGen</strong>, a framework for generating dialogues with scenario-adaptive turn-taking by calibrating LLM predictions 
+              against a small set of slot-level human preference annotations.
+              In six cooperative and competitive tasks, human turn-taking preferences differ systematically, 
+              and DuplexGen aligns substantially more closely with those preferences than uncalibrated prompting or training solely on generic human-human data; 
+              a full-duplex model trained on DuplexGen-generated data exhibits distinctive, human-preferred turn-taking behaviors. 
+              These results show that human calibration, not corpus scale or prompt design alone, is what allows turn-taking synthesis to be scenario-specific.
             </p>
           </div>
         </div>
