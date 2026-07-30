@@ -34,14 +34,33 @@
     .affiliation-list { gap: 0.2rem 1rem; }
     .author-list .author-block,
     .affiliation-list .author-block { margin-right: 0; }
+    @media screen and (min-width: 769px) {
+      .author-list {
+        display: grid;
+        grid-template-columns: repeat(3, max-content);
+        gap: 0.15rem 0.8rem;
+        justify-content: center;
+      }
+    }
     .section-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: center;
       gap: 0.45rem;
-      margin-top: 0.75rem;
+      margin: 0;
+      padding: 0.55rem 1rem;
+      overflow-x: auto;
+      border-bottom: 1px solid rgba(217, 226, 241, 0.9);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(10px);
+      scrollbar-width: none;
     }
+    .section-nav::-webkit-scrollbar { display: none; }
     .section-nav a {
+      flex: none;
       padding: 0.35rem 0.8rem;
       border: 1px solid #d9e2f1;
       border-radius: 999px;
@@ -54,10 +73,16 @@
       border-color: #3273dc;
       background: #f5f8ff;
     }
+    .section-nav a.is-active {
+      border-color: #3273dc;
+      background: #3273dc;
+      color: #fff;
+    }
     .section-nav a:focus-visible {
       outline: 3px solid rgba(50, 115, 220, 0.35);
       outline-offset: 2px;
     }
+    section[id] { scroll-margin-top: 4.5rem; }
     .scenario-card { height: 100%; }
     .scenario-tag { font-weight: 600; }
     .waveform { width: 100%; }
@@ -188,11 +213,51 @@
     .performance-table tbody tr:hover > .duplexgen-column {
       background: #e8f1ff;
     }
+    .performance-table thead .scenario,
+    .performance-table tbody .scenario {
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: #fff;
+      box-shadow: 2px 0 0 #e4e8ef;
+    }
+    .performance-table thead .scenario { z-index: 6; }
+    .performance-table tbody tr:hover > .scenario { background: #f7f9fc; }
+    .performance-table tbody tr.average > .scenario { background: #fafafa; }
     .performance-table .scenario abbr {
+      position: relative;
+      display: inline-block;
       border-bottom: 1px dotted #777;
-      cursor: help;
+      cursor: default;
       text-decoration: none;
       text-underline-offset: 3px;
+    }
+    .performance-table .scenario abbr::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 0.45rem);
+      left: 0;
+      visibility: hidden;
+      padding: 0.35rem 0.55rem;
+      border-radius: 5px;
+      background: #363636;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 600;
+      line-height: 1.25;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-0.2rem);
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      white-space: nowrap;
+    }
+    .performance-table .scenario abbr:hover::after,
+    .performance-table .scenario abbr:focus-visible::after {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
     }
     .performance-table .scenario abbr:focus-visible {
       border-bottom-color: transparent;
@@ -209,6 +274,15 @@
       padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem;
     }
     .wave-play:hover { background: #2759bb; }
+    .wave-play:disabled {
+      background: #7897c8;
+      cursor: wait;
+      opacity: 0.85;
+    }
+    .wave-play.is-error:disabled {
+      background: #8a8a8a;
+      cursor: not-allowed;
+    }
     .transcript-toggle {
       display: block;
       width: 100%;
@@ -254,8 +328,86 @@
     .lbl-human { color: #D32F2F; font-weight: 700; }
     .cmp-bubble .who.lbl-ai { color: #1976D2; }
     .cmp-bubble .who.lbl-human { color: #D32F2F; }
+    .bibtex-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .bibtex-heading .title { margin-bottom: 0; }
+    .copy-bibtex {
+      flex: none;
+      padding: 0.45rem 0.8rem;
+      border: 1px solid #b9c9e5;
+      border-radius: 6px;
+      background: #fff;
+      color: #3273dc;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .copy-bibtex:hover { background: #f5f8ff; }
+    .copy-bibtex.is-copied {
+      border-color: #3a9d67;
+      background: #effaf4;
+      color: #26734a;
+    }
+    .copy-bibtex:focus-visible {
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 2px;
+    }
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .back-to-top {
+      position: fixed;
+      right: max(1rem, env(safe-area-inset-right));
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.55rem 0.75rem;
+      border: none;
+      border-radius: 999px;
+      background: #3273dc;
+      box-shadow: 0 5px 16px rgba(31, 64, 118, 0.28);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(0.75rem);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      visibility: hidden;
+    }
+    .back-to-top.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+      visibility: visible;
+    }
+    .back-to-top.is-visible:hover {
+      background: #2759bb;
+      transform: translateY(-2px);
+    }
+    .back-to-top:focus-visible {
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 3px;
+    }
 
     @media screen and (max-width: 768px) {
+      .section-nav { justify-content: flex-start; }
       .author-list { gap: 0.1rem 0.4rem; }
       .affiliation-list {
         gap: 0.15rem 0.65rem;
@@ -271,9 +423,17 @@
       .performance-table-wrap {
         margin-top: 0;
       }
+      .has-text-justified {
+        text-align: left !important;
+      }
+      .bibtex-heading {
+        align-items: flex-start;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
+      .back-to-top { transition: none; }
+      .performance-table .scenario abbr::after { transition: none; }
     }
   </style>
 </head>
@@ -313,13 +473,15 @@
             <div class="column has-text-centered" style="margin-top:1.5rem;">
               <div class="publication-links">
                 <span class="link-block">
-                  <a href="https://arxiv.org/abs/2607.26178" class="external-link button is-normal is-rounded is-dark">
+                  <a href="https://arxiv.org/abs/2607.26178" target="_blank" rel="noopener"
+                    class="external-link button is-normal is-rounded is-dark">
                     <span class="icon"><i class="fas fa-file-pdf"></i></span>
                     <span>Paper</span>
                   </a>
                 </span>
                 <span class="link-block">
                   <a href="https://github.com/duplexgen/duplexgen-code"
+                    target="_blank" rel="noopener"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon"><i class="fab fa-github"></i></span>
                     <span>Code</span>
@@ -327,6 +489,7 @@
                 </span>
                 <span class="link-block">
                   <a href="https://github.com/duplexgen/personaplex-finetune"
+                    target="_blank" rel="noopener"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon"><i class="fas fa-microchip"></i></span>
                     <span>Finetune</span>
@@ -334,6 +497,7 @@
                 </span>
                 <span class="link-block">
                   <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-corpus"
+                    target="_blank" rel="noopener"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">&#129303;</span>
                     <span>Corpus</span>
@@ -341,6 +505,7 @@
                 </span>
                 <span class="link-block">
                   <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken"
+                    target="_blank" rel="noopener"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">&#129303;</span>
                     <span>Spoken</span>
@@ -349,17 +514,18 @@
               </div>
             </div>
 
-            <nav class="section-nav" aria-label="Page sections">
-              <a href="#framework">Framework</a>
-              <a href="#scenarios">Scenarios</a>
-              <a href="#samples">Samples</a>
-              <a href="#evaluation">Evaluation</a>
-            </nav>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <nav class="section-nav" aria-label="Page sections">
+    <a href="#framework">Framework</a>
+    <a href="#scenarios">Scenarios</a>
+    <a href="#samples">Samples</a>
+    <a href="#evaluation">Evaluation</a>
+  </nav>
 
   <!-- Abstract -->
   <section class="section">
@@ -466,7 +632,8 @@
         </div>
         <p class="is-size-7" style="margin-top:0.75rem;color:#666;">
           For listening tests, synthesized dialogues are rendered to full-duplex speech with
-          <a href="https://github.com/resemble-ai/chatterbox">Chatterbox</a> TTS.
+          <a href="https://github.com/resemble-ai/chatterbox" target="_blank"
+             rel="noopener">Chatterbox</a> TTS.
         </p>
       </div>
     </div>
@@ -544,7 +711,8 @@
       <p class="subtitle is-6 has-text-centered">
         One DuplexGen-synthesized full-duplex dialogue per scenario, rendered with Chatterbox TTS.
         The full corpus is on the
-        <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken">Hub</a>.
+        <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken"
+           target="_blank" rel="noopener">Hub</a>.
       </p>
 
       <div class="columns is-multiline" style="margin-top:1rem;">
@@ -660,7 +828,8 @@
           <tbody>
             <tr>
               <th class="scenario" scope="row">
-                <abbr title="Socratic Teaching" aria-label="TEA: Socratic Teaching" tabindex="0">TEA</abbr>
+                <abbr data-tooltip="Socratic Teaching"
+                      aria-label="TEA: Socratic Teaching" tabindex="0">TEA</abbr>
               </th>
               <td><span class="mean">1.44</span><span class="sem">&plusmn; 0.12</span></td>
               <td><span class="mean">2.96</span><span class="sem">&plusmn; 0.26</span></td>
@@ -671,7 +840,7 @@
             </tr>
             <tr>
               <th class="scenario" scope="row">
-                <abbr title="Mixed-Initiative Planning"
+                <abbr data-tooltip="Mixed-Initiative Planning"
                       aria-label="PLN: Mixed-Initiative Planning" tabindex="0">PLN</abbr>
               </th>
               <td><span class="mean">1.40</span><span class="sem">&plusmn; 0.12</span></td>
@@ -683,7 +852,7 @@
             </tr>
             <tr>
               <th class="scenario" scope="row">
-                <abbr title="Interview" aria-label="INT: Interview" tabindex="0">INT</abbr>
+                <abbr data-tooltip="Interview" aria-label="INT: Interview" tabindex="0">INT</abbr>
               </th>
               <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.23</span></td>
               <td><span class="mean">3.76</span><span class="sem">&plusmn; 0.28</span></td>
@@ -694,7 +863,7 @@
             </tr>
             <tr class="section-break">
               <th class="scenario" scope="row">
-                <abbr title="Negotiation" aria-label="NEG: Negotiation" tabindex="0">NEG</abbr>
+                <abbr data-tooltip="Negotiation" aria-label="NEG: Negotiation" tabindex="0">NEG</abbr>
               </th>
               <td><span class="mean">2.12</span><span class="sem">&plusmn; 0.22</span></td>
               <td><span class="mean">4.00</span><span class="sem">&plusmn; 0.25</span></td>
@@ -705,7 +874,7 @@
             </tr>
             <tr>
               <th class="scenario" scope="row">
-                <abbr title="Persuasion" aria-label="PER: Persuasion" tabindex="0">PER</abbr>
+                <abbr data-tooltip="Persuasion" aria-label="PER: Persuasion" tabindex="0">PER</abbr>
               </th>
               <td><span class="mean">3.12</span><span class="sem">&plusmn; 0.31</span></td>
               <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.30</span></td>
@@ -716,7 +885,7 @@
             </tr>
             <tr>
               <th class="scenario" scope="row">
-                <abbr title="Social Chat" aria-label="SOC: Social Chat" tabindex="0">SOC</abbr>
+                <abbr data-tooltip="Social Chat" aria-label="SOC: Social Chat" tabindex="0">SOC</abbr>
               </th>
               <td><span class="mean">3.64</span><span class="sem">&plusmn; 0.29</span></td>
               <td><span class="mean">3.72</span><span class="sem">&plusmn; 0.30</span></td>
@@ -774,8 +943,13 @@
   <!-- BibTeX -->
   <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
-      <h2 class="title is-3">BibTeX</h2>
-      <pre><code>@misc{kim2026duplexgenadaptivesynthesishumanai,
+      <div class="bibtex-heading">
+        <h2 class="title is-3">BibTeX</h2>
+        <button id="copy-bibtex" class="copy-bibtex" type="button"
+                aria-describedby="bibtex-copy-status">Copy BibTeX</button>
+      </div>
+      <p id="bibtex-copy-status" class="visually-hidden" aria-live="polite"></p>
+      <pre><code id="bibtex-code">@misc{kim2026duplexgenadaptivesynthesishumanai,
       title={DuplexGen: Adaptive Synthesis of Human-AI Turn-Taking Dialogues}, 
       author={Takyoung Kim and Kang-wook Kim and Sang Hoon Woo and Julia Hirschberg and Gunhee Kim and Dilek Hakkani-Tür},
       year={2026},
@@ -793,18 +967,20 @@
         <div class="column is-8 has-text-centered">
           <div class="content">
             <p>
-              <a href="https://arxiv.org/abs/2607.26178">Paper</a> &middot;
-              <a href="https://github.com/duplexgen/duplexgen-code">Code</a> &middot;
-              <a href="https://github.com/duplexgen/personaplex-finetune">Finetune</a> &middot;
-              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-corpus">Corpus</a> &middot;
-              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken">Spoken</a> &middot;
-              <a href="https://duplexgen.github.io/">Demo</a>
+              <a href="https://arxiv.org/abs/2607.26178" target="_blank" rel="noopener">Paper</a> &middot;
+              <a href="https://github.com/duplexgen/duplexgen-code" target="_blank" rel="noopener">Code</a> &middot;
+              <a href="https://github.com/duplexgen/personaplex-finetune" target="_blank" rel="noopener">Finetune</a> &middot;
+              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-corpus" target="_blank" rel="noopener">Corpus</a> &middot;
+              <a href="https://huggingface.co/datasets/DuplexGen/duplexgen-spoken" target="_blank" rel="noopener">Spoken</a> &middot;
+              <a href="https://duplexgen.github.io/" target="_blank" rel="noopener">Demo</a>
             </p>
             <p>
               Page template adapted from the
-              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a>
+              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template"
+                 target="_blank" rel="noopener">Academic Project Page Template</a>
               (Nerfies). Licensed under
-              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+              <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank"
+                 rel="license noopener">CC BY-SA 4.0</a>.
             </p>
           </div>
         </div>
@@ -812,8 +988,21 @@
     </div>
   </footer>
 
+  <button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top">
+    <span aria-hidden="true">&uarr;</span>
+    <span>Top</span>
+  </button>
+
   <script>
-    function createWaveSurfer(containerId, audioPath, sampleLabel) {
+    var players = {};
+
+    function pauseOtherPlayers(activeCode) {
+      Object.keys(players).forEach((code) => {
+        if (code !== activeCode) players[code].pause();
+      });
+    }
+
+    function createWaveSurfer(code, containerId, audioPath, sampleLabel) {
       const ws = WaveSurfer.create({
         container: containerId,
         waveColor: "#b5c7e6",
@@ -823,31 +1012,98 @@
         normalize: true,
         splitChannels: true,
       });
-      ws.load(audioPath);
       const containerEl = document.querySelector(containerId);
+      var loadState = "idle";
+      var isPlaying = false;
+      var btn = null;
+
+      const setButtonState = () => {
+        if (!btn) return;
+        var action = "Load audio";
+        var icon = "download";
+        btn.disabled = false;
+        btn.classList.remove("is-error");
+
+        if (loadState === "loading") {
+          action = "Loading\u2026";
+          icon = "spinner fa-spin";
+          btn.disabled = true;
+        } else if (loadState === "error") {
+          action = "Audio unavailable";
+          icon = "exclamation-triangle";
+          btn.disabled = true;
+          btn.classList.add("is-error");
+        } else if (loadState === "ready") {
+          action = isPlaying ? "Pause" : "Play";
+          icon = isPlaying ? "pause" : "play";
+        }
+
+        btn.innerHTML = '<i class="fa fa-' + icon + '" aria-hidden="true"></i>&nbsp; ' + action;
+        btn.setAttribute("aria-label", action + " " + sampleLabel + " sample");
+        btn.setAttribute("aria-pressed", String(isPlaying));
+      };
+
+      const loadAudio = () => {
+        if (loadState !== "idle") return;
+        loadState = "loading";
+        setButtonState();
+        ws.load(audioPath);
+      };
+
+      const togglePlayback = () => {
+        if (loadState === "idle") {
+          loadAudio();
+          return;
+        }
+        if (loadState !== "ready") return;
+        if (isPlaying) {
+          ws.pause();
+        } else {
+          pauseOtherPlayers(code);
+          ws.play();
+        }
+      };
+
       if (containerEl) {
         containerEl.style.cursor = "pointer";
-        containerEl.addEventListener("click", () => ws.playPause());
-        const btn = document.createElement("button");
+        containerEl.addEventListener("click", togglePlayback);
+        btn = document.createElement("button");
         btn.type = "button";
         btn.className = "wave-play";
-        btn.addEventListener("click", () => ws.playPause());
+        btn.addEventListener("click", togglePlayback);
         containerEl.insertAdjacentElement("afterend", btn);
-
-        const setButtonState = (isPlaying) => {
-          const action = isPlaying ? "Pause" : "Play";
-          const icon = isPlaying ? "pause" : "play";
-          btn.innerHTML = '<i class="fa fa-' + icon + '" aria-hidden="true"></i>&nbsp; ' + action;
-          btn.setAttribute("aria-label", action + " " + sampleLabel + " audio sample");
-          btn.setAttribute("aria-pressed", String(isPlaying));
-        };
-
-        setButtonState(false);
-        ws.on("play", () => setButtonState(true));
-        ws.on("pause", () => setButtonState(false));
-        ws.on("finish", () => setButtonState(false));
+        setButtonState();
       }
-      return ws;
+
+      ws.on("ready", () => {
+        loadState = "ready";
+        setButtonState();
+      });
+      ws.on("play", () => {
+        isPlaying = true;
+        setButtonState();
+      });
+      ws.on("pause", () => {
+        isPlaying = false;
+        setButtonState();
+      });
+      ws.on("finish", () => {
+        isPlaying = false;
+        setButtonState();
+      });
+      ws.on("error", () => {
+        loadState = "error";
+        isPlaying = false;
+        setButtonState();
+      });
+
+      return {
+        element: containerEl,
+        load: loadAudio,
+        pause: () => {
+          if (loadState === "ready" && isPlaying) ws.pause();
+        }
+      };
     }
 
     var scenarios = ["TEA", "PLN", "INT", "NEG", "PER", "SOC"];
@@ -859,14 +1115,31 @@
       PER: "PER Persuasion",
       SOC: "SOC Social Chat"
     };
-    var players = {};
     scenarios.forEach((code) => {
       players[code] = createWaveSurfer(
+        code,
         `#wave_${code}`,
         `static/audio/${code}.mp3`,
         scenarioNames[code]
       );
     });
+
+    if ("IntersectionObserver" in window) {
+      var audioObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          var code = entry.target.id.replace("wave_", "");
+          if (players[code]) players[code].load();
+          audioObserver.unobserve(entry.target);
+        });
+      }, { rootMargin: "300px 0px", threshold: 0.01 });
+
+      Object.keys(players).forEach((code) => {
+        if (players[code].element) audioObserver.observe(players[code].element);
+      });
+    } else {
+      Object.keys(players).forEach((code) => players[code].load());
+    }
 
     // Render the ASR transcript for each corpus sample as selectable chat bubbles.
     scenarios.forEach((code) => {
@@ -884,6 +1157,93 @@
         btn.textContent = isExpanded ? "Show transcript" : "Hide transcript";
       });
     });
+
+    var sectionNavLinks = Array.from(document.querySelectorAll(".section-nav a"));
+    var setActiveSection = (sectionId) => {
+      sectionNavLinks.forEach((link) => {
+        var isActive = link.getAttribute("href") === "#" + sectionId;
+        link.classList.toggle("is-active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    };
+
+    sectionNavLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        setActiveSection(link.getAttribute("href").slice(1));
+      });
+    });
+
+    if ("IntersectionObserver" in window) {
+      var sectionObserver = new IntersectionObserver((entries) => {
+        var visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visibleEntry) setActiveSection(visibleEntry.target.id);
+      }, { rootMargin: "-15% 0px -60% 0px", threshold: [0, 0.1, 0.25] });
+
+      sectionNavLinks.forEach((link) => {
+        var section = document.querySelector(link.getAttribute("href"));
+        if (section) sectionObserver.observe(section);
+      });
+    }
+
+    var copyBibtexButton = document.getElementById("copy-bibtex");
+    var bibtexCode = document.getElementById("bibtex-code");
+    var bibtexCopyStatus = document.getElementById("bibtex-copy-status");
+    var copyResetTimer;
+
+    function fallbackCopyText(text) {
+      return new Promise((resolve, reject) => {
+        var textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        var copied = document.execCommand("copy");
+        textarea.remove();
+        copied ? resolve() : reject(new Error("Copy command failed"));
+      });
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopyText(text));
+      }
+      return fallbackCopyText(text);
+    }
+
+    copyBibtexButton.addEventListener("click", () => {
+      copyText(bibtexCode.textContent.trim()).then(() => {
+        copyBibtexButton.textContent = "Copied!";
+        copyBibtexButton.classList.add("is-copied");
+        bibtexCopyStatus.textContent = "BibTeX copied to clipboard.";
+        window.clearTimeout(copyResetTimer);
+        copyResetTimer = window.setTimeout(() => {
+          copyBibtexButton.textContent = "Copy BibTeX";
+          copyBibtexButton.classList.remove("is-copied");
+        }, 2000);
+      }).catch(() => {
+        copyBibtexButton.textContent = "Copy failed";
+        bibtexCopyStatus.textContent = "BibTeX could not be copied.";
+      });
+    });
+
+    var backToTopButton = document.getElementById("back-to-top");
+    var updateBackToTopButton = () => {
+      backToTopButton.classList.toggle("is-visible", window.scrollY > 500);
+    };
+    backToTopButton.addEventListener("click", () => {
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+    window.addEventListener("scroll", updateBackToTopButton, { passive: true });
+    updateBackToTopButton();
 
     function escapeHtml(s) {
       return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
