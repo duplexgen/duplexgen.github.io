@@ -22,7 +22,33 @@
   <script src="static/js/sample_transcripts.js"></script>
 
   <style>
+    :root {
+      --theme: #2f855a;
+      --theme-dark: #246b48;
+      --theme-muted: #78a98a;
+      --theme-soft: #edf8f1;
+      --theme-soft-strong: #e2f2e8;
+      --theme-border: #cfe5d7;
+      --theme-focus: rgba(47, 133, 90, 0.32);
+      --section-tint: #fafafa;
+    }
     html { scroll-behavior: smooth; }
+    a:not(.button) { color: var(--theme); }
+    a:not(.button):hover { color: var(--theme-dark); }
+    .publication-authors a { color: var(--theme) !important; }
+    .publication-links .button.is-dark {
+      border-color: transparent;
+      background-color: var(--theme-dark);
+    }
+    .publication-links .button.is-dark:hover {
+      background-color: var(--theme);
+    }
+    .publication-links .button.is-dark:focus-visible {
+      outline: 3px solid var(--theme-focus);
+      outline-offset: 3px;
+    }
+    .section-tint,
+    .footer { background-color: var(--section-tint); }
     .author-block { margin-right: 0.75rem; }
     .author-list,
     .affiliation-list {
@@ -57,7 +83,7 @@
       margin: 0;
       padding: 0.55rem 1rem;
       overflow-x: auto;
-      border-bottom: 1px solid rgba(217, 226, 241, 0.9);
+      border-bottom: 1px solid rgba(207, 229, 215, 0.92);
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
       scrollbar-width: none;
@@ -66,24 +92,24 @@
     .section-nav a {
       flex: none;
       padding: 0.35rem 0.8rem;
-      border: 1px solid #d9e2f1;
+      border: 1px solid var(--theme-border);
       border-radius: 999px;
       background: #fff;
-      color: #3273dc;
+      color: var(--theme);
       font-size: 0.82rem;
       font-weight: 600;
     }
     .section-nav a:hover {
-      border-color: #3273dc;
-      background: #f5f8ff;
+      border-color: var(--theme);
+      background: var(--theme-soft);
     }
     .section-nav a.is-active {
-      border-color: #3273dc;
-      background: #3273dc;
+      border-color: var(--theme);
+      background: var(--theme);
       color: #fff;
     }
     .section-nav a:focus-visible {
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 2px;
     }
     section[id] { scroll-margin-top: 4.5rem; }
@@ -94,7 +120,7 @@
     .stage-number {
       display: inline-flex; align-items: center; justify-content: center;
       width: 2rem; height: 2rem; border-radius: 999px;
-      background: #3273dc; color: #fff; font-weight: 700; margin-right: 0.6rem;
+      background: var(--theme); color: #fff; font-weight: 700; margin-right: 0.6rem;
     }
     .pipeline-stage { margin-bottom: 1rem; }
     .overview-figure { margin: 1.75rem 0 0; text-align: center; }
@@ -109,11 +135,11 @@
     .motivation-callout {
       margin-top: 1.25rem;
       padding: 1.35rem 1.5rem;
-      background: #f5f8ff;
-      border: 1px solid #d7e4f8;
-      border-left: 4px solid #3273dc;
+      background: var(--theme-soft);
+      border: 1px solid var(--theme-border);
+      border-left: 4px solid var(--theme);
       border-radius: 8px;
-      box-shadow: 0 3px 12px rgba(50, 115, 220, 0.08);
+      box-shadow: 0 3px 12px rgba(47, 133, 90, 0.08);
       text-align: left;
     }
     .motivation-callout p {
@@ -122,7 +148,7 @@
       line-height: 1.75;
     }
     .motivation-callout strong {
-      color: #2759bb;
+      color: var(--theme-dark);
     }
 
     .table-scroll-hint {
@@ -140,7 +166,7 @@
       -webkit-overflow-scrolling: touch;
     }
     .performance-table-wrap:focus-visible {
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 3px;
     }
     .performance-table {
@@ -178,7 +204,7 @@
       flex-direction: column;
     }
     .performance-table .metric-group {
-      border-bottom: 2px solid #3273dc;
+      border-bottom: 2px solid var(--theme);
     }
     .performance-table .naturalness-divider {
       border-left: 2px solid #cfd6df;
@@ -209,13 +235,13 @@
       background: #fafafa;
     }
     .performance-table .duplexgen-column {
-      background: #f3f7ff;
+      background: var(--theme-soft);
     }
     .performance-table tbody tr:hover > * {
-      background: #f7f9fc;
+      background: #f5faf7;
     }
     .performance-table tbody tr:hover > .duplexgen-column {
-      background: #e8f1ff;
+      background: var(--theme-soft-strong);
     }
     .performance-table thead .scenario,
     .performance-table tbody .scenario {
@@ -223,12 +249,12 @@
       left: 0;
       z-index: 5;
       background: #fff;
-      box-shadow: 2px 0 0 #e4e8ef;
+      box-shadow: 2px 0 0 #dfe9e3;
     }
     .performance-table thead .scenario { z-index: 6; }
     .performance-table tbody .scenario:hover,
     .performance-table tbody .scenario:focus-within { z-index: 30; }
-    .performance-table tbody tr:hover > .scenario { background: #f7f9fc; }
+    .performance-table tbody tr:hover > .scenario { background: #f5faf7; }
     .performance-table tbody tr.average > .scenario { background: #fafafa; }
     .performance-table .scenario abbr {
       position: relative;
@@ -267,7 +293,7 @@
     }
     .performance-table .scenario abbr:focus-visible {
       border-bottom-color: transparent;
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 2px;
     }
     .cmp-card {
@@ -276,12 +302,12 @@
     }
     .wave-play {
       display: block; width: 100%; margin-top: 0.4rem; border: none;
-      background: #3273dc; color: #fff; border-radius: 6px;
+      background: var(--theme); color: #fff; border-radius: 6px;
       padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem;
     }
-    .wave-play:hover { background: #2759bb; }
+    .wave-play:hover { background: var(--theme-dark); }
     .wave-play:disabled {
-      background: #7897c8;
+      background: var(--theme-muted);
       cursor: wait;
       opacity: 0.85;
     }
@@ -294,17 +320,17 @@
       width: 100%;
       margin-top: 0.5rem;
       padding: 0.3rem 0.8rem;
-      border: 1px solid #b9c9e5;
+      border: 1px solid var(--theme-border);
       border-radius: 6px;
       background: #fff;
-      color: #3273dc;
+      color: var(--theme);
       cursor: pointer;
       font-size: 0.82rem;
       font-weight: 600;
     }
-    .transcript-toggle:hover { background: #f5f8ff; }
+    .transcript-toggle:hover { background: var(--theme-soft); }
     .transcript-toggle:focus-visible {
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 2px;
     }
     /* Selectable text transcript (bubbles) */
@@ -345,22 +371,22 @@
     .copy-bibtex {
       flex: none;
       padding: 0.45rem 0.8rem;
-      border: 1px solid #b9c9e5;
+      border: 1px solid var(--theme-border);
       border-radius: 6px;
       background: #fff;
-      color: #3273dc;
+      color: var(--theme);
       cursor: pointer;
       font-size: 0.82rem;
       font-weight: 700;
     }
-    .copy-bibtex:hover { background: #f5f8ff; }
+    .copy-bibtex:hover { background: var(--theme-soft); }
     .copy-bibtex.is-copied {
       border-color: #3a9d67;
       background: #effaf4;
       color: #26734a;
     }
     .copy-bibtex:focus-visible {
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 2px;
     }
     .visually-hidden {
@@ -385,8 +411,8 @@
       padding: 0.55rem 0.75rem;
       border: none;
       border-radius: 999px;
-      background: #3273dc;
-      box-shadow: 0 5px 16px rgba(31, 64, 118, 0.28);
+      background: var(--theme);
+      box-shadow: 0 5px 16px rgba(31, 92, 59, 0.25);
       color: #fff;
       cursor: pointer;
       font-size: 0.82rem;
@@ -404,11 +430,11 @@
       visibility: visible;
     }
     .back-to-top.is-visible:hover {
-      background: #2759bb;
+      background: var(--theme-dark);
       transform: translateY(-2px);
     }
     .back-to-top:focus-visible {
-      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline: 3px solid var(--theme-focus);
       outline-offset: 3px;
     }
 
@@ -588,7 +614,7 @@
   </section>
 
   <!-- Pipeline -->
-  <section class="section" id="framework" style="background-color:#fafafa;">
+  <section class="section section-tint" id="framework">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">DuplexGen Framework</h2>
       <p class="subtitle is-6 has-text-centered">
@@ -713,7 +739,7 @@
   </section>
 
   <!-- Audio samples -->
-  <section class="section" id="samples" style="background-color:#fafafa;">
+  <section class="section section-tint" id="samples">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">DuplexGen Corpus Samples</h2>
       <p class="subtitle is-6 has-text-centered">
@@ -918,10 +944,10 @@
   </section>
 
   <!-- Results -->
-  <section class="section" style="background-color:#fafafa;">
+  <section class="section section-tint">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">Key Findings</h2>
-      <!-- (background alternates: Audio #fafafa, Comparison white, Results #fafafa) -->
+      <!-- (background alternates: tinted samples, white evaluation, tinted results) -->
       <div class="content has-text-justified">
         <p>
           <strong>Turn-taking preferences differ by scenario.</strong> Human annotations show
@@ -1013,8 +1039,8 @@
     function createWaveSurfer(code, containerId, audioPath, sampleLabel) {
       const ws = WaveSurfer.create({
         container: containerId,
-        waveColor: "#b5c7e6",
-        progressColor: "#3273dc",
+        waveColor: "#b9d8c4",
+        progressColor: "#2f855a",
         height: 48,
         responsive: true,
         normalize: true,
@@ -1167,9 +1193,13 @@
     });
 
     var sectionNavLinks = Array.from(document.querySelectorAll(".section-nav a"));
+    var sectionNav = document.querySelector(".section-nav");
+    var trackedSections = sectionNavLinks
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
     var setActiveSection = (sectionId) => {
       sectionNavLinks.forEach((link) => {
-        var isActive = link.getAttribute("href") === "#" + sectionId;
+        var isActive = Boolean(sectionId) && link.getAttribute("href") === "#" + sectionId;
         link.classList.toggle("is-active", isActive);
         if (isActive) {
           link.setAttribute("aria-current", "true");
@@ -1178,26 +1208,20 @@
         }
       });
     };
-
-    sectionNavLinks.forEach((link) => {
-      link.addEventListener("click", () => {
-        setActiveSection(link.getAttribute("href").slice(1));
+    var updateActiveSectionFromScroll = () => {
+      if (!sectionNav) return;
+      var activationLine = sectionNav.getBoundingClientRect().bottom + 1;
+      var activeSectionId = null;
+      trackedSections.forEach((section) => {
+        if (section.getBoundingClientRect().top <= activationLine) {
+          activeSectionId = section.id;
+        }
       });
-    });
-
-    if ("IntersectionObserver" in window) {
-      var sectionObserver = new IntersectionObserver((entries) => {
-        var visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visibleEntry) setActiveSection(visibleEntry.target.id);
-      }, { rootMargin: "-15% 0px -60% 0px", threshold: [0, 0.1, 0.25] });
-
-      sectionNavLinks.forEach((link) => {
-        var section = document.querySelector(link.getAttribute("href"));
-        if (section) sectionObserver.observe(section);
-      });
-    }
+      setActiveSection(activeSectionId);
+    };
+    window.addEventListener("scroll", updateActiveSectionFromScroll, { passive: true });
+    window.addEventListener("resize", updateActiveSectionFromScroll);
+    window.requestAnimationFrame(updateActiveSectionFromScroll);
 
     var copyBibtexButton = document.getElementById("copy-bibtex");
     var bibtexCode = document.getElementById("bibtex-code");
