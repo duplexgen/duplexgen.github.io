@@ -22,7 +22,42 @@
   <script src="static/js/sample_transcripts.js"></script>
 
   <style>
+    html { scroll-behavior: smooth; }
     .author-block { margin-right: 0.75rem; }
+    .author-list,
+    .affiliation-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .author-list { gap: 0.15rem 0.55rem; }
+    .affiliation-list { gap: 0.2rem 1rem; }
+    .author-list .author-block,
+    .affiliation-list .author-block { margin-right: 0; }
+    .section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+    }
+    .section-nav a {
+      padding: 0.35rem 0.8rem;
+      border: 1px solid #d9e2f1;
+      border-radius: 999px;
+      background: #fff;
+      color: #3273dc;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .section-nav a:hover {
+      border-color: #3273dc;
+      background: #f5f8ff;
+    }
+    .section-nav a:focus-visible {
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 2px;
+    }
     .scenario-card { height: 100%; }
     .scenario-tag { font-weight: 600; }
     .waveform { width: 100%; }
@@ -42,14 +77,46 @@
       font-size: 0.78rem; line-height: 1.5; color: #666; margin-top: 0.6rem;
     }
 
+    .motivation-callout {
+      margin-top: 1.25rem;
+      padding: 1.35rem 1.5rem;
+      background: #f5f8ff;
+      border: 1px solid #d7e4f8;
+      border-left: 4px solid #3273dc;
+      border-radius: 8px;
+      box-shadow: 0 3px 12px rgba(50, 115, 220, 0.08);
+      text-align: left;
+    }
+    .motivation-callout p {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.75;
+    }
+    .motivation-callout strong {
+      color: #2759bb;
+    }
+
+    .table-scroll-hint {
+      display: none;
+      margin: 1rem 0 0.35rem;
+      color: #666;
+      font-size: 0.78rem;
+      text-align: center;
+    }
     .performance-table-wrap {
       margin-top: 1.5rem;
       overflow-x: auto;
+      overscroll-behavior-inline: contain;
       padding-bottom: 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .performance-table-wrap:focus-visible {
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 3px;
     }
     .performance-table {
-      min-width: 760px;
-      table-layout: auto;
+      min-width: 840px;
+      table-layout: fixed;
       font-size: 0.9rem;
     }
     .performance-table caption {
@@ -60,27 +127,44 @@
       line-height: 1.5;
       text-align: left;
     }
-    .performance-table th,
-    .performance-table td {
+    .performance-table thead th,
+    .performance-table tbody th,
+    .performance-table tbody td {
       padding: 0.55rem 0.65rem;
-      text-align: center;
+      text-align: center !important;
       vertical-align: middle;
     }
     .performance-table thead th {
       color: #363636;
     }
+    .performance-table .model-heading {
+      display: inline-flex;
+      min-height: 2.5em;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+    .performance-table .model-heading.is-stacked {
+      flex-direction: column;
+    }
     .performance-table .metric-group {
       border-bottom: 2px solid #3273dc;
+    }
+    .performance-table .naturalness-divider {
+      border-left: 2px solid #cfd6df;
     }
     .performance-table .scenario {
       width: 5rem;
       font-weight: 700;
-      text-align: left;
+      text-align: center !important;
     }
     .performance-table .mean,
     .performance-table .sem {
       display: block;
+      width: 100%;
       white-space: nowrap;
+      text-align: center;
     }
     .performance-table .sem {
       margin-top: 0.08rem;
@@ -95,7 +179,26 @@
       border-top: 2px solid #7a7a7a;
       background: #fafafa;
     }
-
+    .performance-table .duplexgen-column {
+      background: #f3f7ff;
+    }
+    .performance-table tbody tr:hover > * {
+      background: #f7f9fc;
+    }
+    .performance-table tbody tr:hover > .duplexgen-column {
+      background: #e8f1ff;
+    }
+    .performance-table .scenario abbr {
+      border-bottom: 1px dotted #777;
+      cursor: help;
+      text-decoration: none;
+      text-underline-offset: 3px;
+    }
+    .performance-table .scenario abbr:focus-visible {
+      border-bottom-color: transparent;
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 2px;
+    }
     .cmp-card {
       background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
       padding: 0.9rem; height: 100%; display: flex; flex-direction: column;
@@ -106,10 +209,29 @@
       padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem;
     }
     .wave-play:hover { background: #2759bb; }
+    .transcript-toggle {
+      display: block;
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid #b9c9e5;
+      border-radius: 6px;
+      background: #fff;
+      color: #3273dc;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .transcript-toggle:hover { background: #f5f8ff; }
+    .transcript-toggle:focus-visible {
+      outline: 3px solid rgba(50, 115, 220, 0.35);
+      outline-offset: 2px;
+    }
     /* Selectable text transcript (bubbles) */
     .cmp-transcript {
       margin-top: 0.7rem; border-top: 1px solid #eee; padding-top: 0.6rem;
     }
+    .cmp-transcript[hidden] { display: none; }
     .cmp-transcript > .tr-caption { font-size: 0.7rem; color: #999; margin-bottom: 0.5rem; }
     .cmp-tr { max-height: 460px; overflow-y: auto; padding-right: 0.3rem; }
     .cmp-turn { display: flex; margin-bottom: 0.5rem; }
@@ -132,6 +254,27 @@
     .lbl-human { color: #D32F2F; font-weight: 700; }
     .cmp-bubble .who.lbl-ai { color: #1976D2; }
     .cmp-bubble .who.lbl-human { color: #D32F2F; }
+
+    @media screen and (max-width: 768px) {
+      .author-list { gap: 0.1rem 0.4rem; }
+      .affiliation-list {
+        gap: 0.15rem 0.65rem;
+        font-size: 0.85rem !important;
+        line-height: 1.45;
+      }
+      .motivation-callout {
+        padding: 1.1rem 1.15rem;
+      }
+      .table-scroll-hint {
+        display: block;
+      }
+      .performance-table-wrap {
+        margin-top: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
   </style>
 </head>
 
@@ -145,22 +288,20 @@
             <h1 class="title is-1 publication-title">DuplexGen</h1>
             <h2 class="subtitle is-3">Adaptive Synthesis of Human&ndash;AI Turn-Taking Dialogues</h2>
 
-            <div class="is-size-5 publication-authors" style="margin-top:1rem;">
+            <div class="is-size-5 publication-authors author-list" style="margin-top:1rem;">
               <span class="author-block"><a href="https://youngerous.github.io/" target="_blank" rel="noopener">Takyoung Kim</a><sup>1</sup><sup>*</sup>,</span>
               <span class="author-block"><a href="https://kwkim.me/" target="_blank" rel="noopener">Kang-wook Kim</a><sup>2,4</sup><sup>*</sup>,</span>
               <span class="author-block"><a href="https://tonywoo.me/" target="_blank" rel="noopener">Sang Hoon Woo</a><sup>2,5</sup>,</span>
-              <br>
               <span class="author-block"><a href="https://www.cs.columbia.edu/~julia/" target="_blank" rel="noopener">Julia Hirschberg</a><sup>3</sup>,</span>
               <span class="author-block"><a href="https://vision.snu.ac.kr/gunhee/" target="_blank" rel="noopener">Gunhee Kim</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://siebelschool.illinois.edu/about/people/faculty/dilek" target="_blank" rel="noopener">Dilek Hakkani-T&uuml;r</a><sup>1</sup></span>
             </div>
 
-            <div class="is-size-6 publication-authors" style="margin-top:0.5rem;">
-              <span class="author-block"><sup>1</sup>University of Illinois Urbana-Champaign</span>&nbsp;&nbsp;
-              <span class="author-block"><sup>2</sup>Seoul National University</span>&nbsp;&nbsp;
-              <span class="author-block"><sup>3</sup>Columbia University</span>&nbsp;&nbsp;
-              <br>
-              <span class="author-block"><sup>4</sup>University of California, Berkeley</span>&nbsp;&nbsp;
+            <div class="is-size-6 publication-authors affiliation-list" style="margin-top:0.5rem;">
+              <span class="author-block"><sup>1</sup>University of Illinois Urbana-Champaign</span>
+              <span class="author-block"><sup>2</sup>Seoul National University</span>
+              <span class="author-block"><sup>3</sup>Columbia University</span>
+              <span class="author-block"><sup>4</sup>University of California, Berkeley</span>
               <span class="author-block"><sup>5</sup>Georgia Institute of Technology</span>
             </div>
 
@@ -207,6 +348,13 @@
                 </span>
               </div>
             </div>
+
+            <nav class="section-nav" aria-label="Page sections">
+              <a href="#framework">Framework</a>
+              <a href="#scenarios">Scenarios</a>
+              <a href="#samples">Samples</a>
+              <a href="#evaluation">Evaluation</a>
+            </nav>
           </div>
         </div>
       </div>
@@ -244,8 +392,29 @@
     </div>
   </section>
 
+  <!-- Motivation -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Motivation: When Should an AI Speak?</h2>
+          <div class="content motivation-callout">
+            <p>
+              Imagine an <strong>AI tutor</strong> that interrupts whenever a student hesitates,
+              and an <strong>AI negotiator</strong> that patiently waits while the other side takes
+              control. Both systems may generate perfectly fluent responses, yet neither understands
+              <em>when</em> it should speak. Effective spoken AI must decide not only what to say,
+              but also when to listen, backchannel, or take the floor; the right decision depends
+              on its role.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Pipeline -->
-  <section class="section" style="background-color:#fafafa;">
+  <section class="section" id="framework" style="background-color:#fafafa;">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">DuplexGen Framework</h2>
       <p class="subtitle is-6 has-text-centered">
@@ -304,7 +473,7 @@
   </section>
 
   <!-- Scenario taxonomy -->
-  <section class="section">
+  <section class="section" id="scenarios">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">Six Conversational Scenarios</h2>
       <p class="subtitle is-6 has-text-centered">
@@ -369,7 +538,7 @@
   </section>
 
   <!-- Audio samples -->
-  <section class="section" style="background-color:#fafafa;">
+  <section class="section" id="samples" style="background-color:#fafafa;">
     <div class="container is-max-desktop">
       <h2 class="title is-3 has-text-centered">DuplexGen Corpus Samples</h2>
       <p class="subtitle is-6 has-text-centered">
@@ -383,42 +552,54 @@
           <div class="cmp-card">
             <p class="sample-title"><strong>TEA</strong> &mdash; Socratic Teaching</p>
             <div id="wave_TEA" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_TEA"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_TEA">Show transcript</button>
+            <div id="transcript_TEA" class="cmp-transcript" hidden><div id="tr_TEA"></div></div>
           </div>
         </div>
         <div class="column is-half">
           <div class="cmp-card">
             <p class="sample-title"><strong>PLN</strong> &mdash; Mixed-Initiative Planning</p>
             <div id="wave_PLN" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_PLN"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_PLN">Show transcript</button>
+            <div id="transcript_PLN" class="cmp-transcript" hidden><div id="tr_PLN"></div></div>
           </div>
         </div>
         <div class="column is-half">
           <div class="cmp-card">
             <p class="sample-title"><strong>INT</strong> &mdash; Interview</p>
             <div id="wave_INT" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_INT"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_INT">Show transcript</button>
+            <div id="transcript_INT" class="cmp-transcript" hidden><div id="tr_INT"></div></div>
           </div>
         </div>
         <div class="column is-half">
           <div class="cmp-card">
             <p class="sample-title"><strong>NEG</strong> &mdash; Negotiation</p>
             <div id="wave_NEG" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_NEG"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_NEG">Show transcript</button>
+            <div id="transcript_NEG" class="cmp-transcript" hidden><div id="tr_NEG"></div></div>
           </div>
         </div>
         <div class="column is-half">
           <div class="cmp-card">
             <p class="sample-title"><strong>PER</strong> &mdash; Persuasion</p>
             <div id="wave_PER" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_PER"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_PER">Show transcript</button>
+            <div id="transcript_PER" class="cmp-transcript" hidden><div id="tr_PER"></div></div>
           </div>
         </div>
         <div class="column is-half">
           <div class="cmp-card">
             <p class="sample-title"><strong>SOC</strong> &mdash; Social Chat</p>
             <div id="wave_SOC" class="waveform"></div>
-            <div class="cmp-transcript"><div id="tr_SOC"></div></div>
+            <button class="transcript-toggle" type="button" aria-expanded="false"
+                    aria-controls="transcript_SOC">Show transcript</button>
+            <div id="transcript_SOC" class="cmp-transcript" hidden><div id="tr_SOC"></div></div>
           </div>
         </div>
       </div>
@@ -430,96 +611,128 @@
   </section>
 
   <!-- Model comparison -->
-  <section class="section">
+  <section class="section" id="evaluation">
     <div class="container is-max-widescreen">
-      <h2 class="title is-3 has-text-centered">Full-Duplex Model: Baselines vs. PP-DG</h2>
-      <div class="performance-table-wrap">
+      <h2 class="title is-3 has-text-centered">Full-Duplex Model Evaluation</h2>
+      <p id="performance-scroll-hint" class="table-scroll-hint">
+        Scroll horizontally to view all columns.
+      </p>
+      <div class="performance-table-wrap"
+           role="region"
+           aria-label="Full-duplex model evaluation results"
+           aria-describedby="performance-scroll-hint"
+           tabindex="0">
         <table class="table is-fullwidth performance-table">
           <caption id="performance-caption">
             Multi-turn dialogue evaluation on a 5-point Likert scale. Instruction Following is
             rated by <strong>GPT-4.1</strong> from transcripts; Turn-Taking Naturalness is rated
             by <strong>humans</strong> via a listening test, since context-appropriate turn-taking
             is hard for LLMs to judge but natural for humans. Values are mean &plusmn; standard
-            error of the mean.
+            error of the mean. The best result in each scenario is shown in <strong>bold</strong>.
           </caption>
           <thead>
             <tr>
               <th class="scenario" scope="col" rowspan="2">Scenario</th>
               <th class="metric-group" scope="colgroup" colspan="3">Instruction Following</th>
-              <th class="metric-group" scope="colgroup" colspan="3">Turn-Taking Naturalness</th>
+              <th class="metric-group naturalness-divider" scope="colgroup" colspan="3">Turn-Taking Naturalness</th>
             </tr>
             <tr>
-              <th scope="col">Moshi</th>
-              <th scope="col"><abbr title="PersonaPlex">PP</abbr></th>
-              <th scope="col">PP-DG</th>
-              <th scope="col">Moshi</th>
-              <th scope="col"><abbr title="PersonaPlex">PP</abbr></th>
-              <th scope="col">PP-DG</th>
+              <th scope="col"><span class="model-heading">Moshi</span></th>
+              <th scope="col"><span class="model-heading">PersonaPlex</span></th>
+              <th class="duplexgen-column" scope="col">
+                <span class="model-heading is-stacked">
+                  <span>PersonaPlex +</span>
+                  <span>DuplexGen</span>
+                </span>
+              </th>
+              <th class="naturalness-divider" scope="col">
+                <span class="model-heading">Moshi</span>
+              </th>
+              <th scope="col"><span class="model-heading">PersonaPlex</span></th>
+              <th class="duplexgen-column" scope="col">
+                <span class="model-heading is-stacked">
+                  <span>PersonaPlex +</span>
+                  <span>DuplexGen</span>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th class="scenario" scope="row">TEA</th>
+              <th class="scenario" scope="row">
+                <abbr title="Socratic Teaching" aria-label="TEA: Socratic Teaching" tabindex="0">TEA</abbr>
+              </th>
               <td><span class="mean">1.44</span><span class="sem">&plusmn; 0.12</span></td>
               <td><span class="mean">2.96</span><span class="sem">&plusmn; 0.26</span></td>
-              <td><strong class="mean">3.40</strong><span class="sem">&plusmn; 0.29</span></td>
-              <td><span class="mean">3.09</span><span class="sem">&plusmn; 0.15</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.40</strong><span class="sem">&plusmn; 0.29</span></td>
+              <td class="naturalness-divider"><span class="mean">3.09</span><span class="sem">&plusmn; 0.15</span></td>
               <td><span class="mean">3.37</span><span class="sem">&plusmn; 0.12</span></td>
-              <td><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
             </tr>
             <tr>
-              <th class="scenario" scope="row">PLN</th>
+              <th class="scenario" scope="row">
+                <abbr title="Mixed-Initiative Planning"
+                      aria-label="PLN: Mixed-Initiative Planning" tabindex="0">PLN</abbr>
+              </th>
               <td><span class="mean">1.40</span><span class="sem">&plusmn; 0.12</span></td>
               <td><strong class="mean">2.04</strong><span class="sem">&plusmn; 0.16</span></td>
-              <td><span class="mean">1.72</span><span class="sem">&plusmn; 0.14</span></td>
-              <td><span class="mean">3.59</span><span class="sem">&plusmn; 0.13</span></td>
+              <td class="duplexgen-column"><span class="mean">1.72</span><span class="sem">&plusmn; 0.14</span></td>
+              <td class="naturalness-divider"><span class="mean">3.59</span><span class="sem">&plusmn; 0.13</span></td>
               <td><span class="mean">3.73</span><span class="sem">&plusmn; 0.10</span></td>
-              <td><strong class="mean">3.76</strong><span class="sem">&plusmn; 0.09</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.76</strong><span class="sem">&plusmn; 0.09</span></td>
             </tr>
             <tr>
-              <th class="scenario" scope="row">INT</th>
+              <th class="scenario" scope="row">
+                <abbr title="Interview" aria-label="INT: Interview" tabindex="0">INT</abbr>
+              </th>
               <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.23</span></td>
               <td><span class="mean">3.76</span><span class="sem">&plusmn; 0.28</span></td>
-              <td><strong class="mean">4.09</strong><span class="sem">&plusmn; 0.32</span></td>
-              <td><strong class="mean">3.68</strong><span class="sem">&plusmn; 0.10</span></td>
+              <td class="duplexgen-column"><strong class="mean">4.09</strong><span class="sem">&plusmn; 0.32</span></td>
+              <td class="naturalness-divider"><strong class="mean">3.68</strong><span class="sem">&plusmn; 0.10</span></td>
               <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.11</span></td>
-              <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.12</span></td>
+              <td class="duplexgen-column"><span class="mean">3.56</span><span class="sem">&plusmn; 0.12</span></td>
             </tr>
             <tr class="section-break">
-              <th class="scenario" scope="row">NEG</th>
+              <th class="scenario" scope="row">
+                <abbr title="Negotiation" aria-label="NEG: Negotiation" tabindex="0">NEG</abbr>
+              </th>
               <td><span class="mean">2.12</span><span class="sem">&plusmn; 0.22</span></td>
               <td><span class="mean">4.00</span><span class="sem">&plusmn; 0.25</span></td>
-              <td><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.20</span></td>
-              <td><span class="mean">3.46</span><span class="sem">&plusmn; 0.12</span></td>
+              <td class="duplexgen-column"><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.20</span></td>
+              <td class="naturalness-divider"><span class="mean">3.46</span><span class="sem">&plusmn; 0.12</span></td>
               <td><span class="mean">3.60</span><span class="sem">&plusmn; 0.10</span></td>
-              <td><strong class="mean">3.63</strong><span class="sem">&plusmn; 0.12</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.63</strong><span class="sem">&plusmn; 0.12</span></td>
             </tr>
             <tr>
-              <th class="scenario" scope="row">PER</th>
+              <th class="scenario" scope="row">
+                <abbr title="Persuasion" aria-label="PER: Persuasion" tabindex="0">PER</abbr>
+              </th>
               <td><span class="mean">3.12</span><span class="sem">&plusmn; 0.31</span></td>
               <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.30</span></td>
-              <td><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.21</span></td>
-              <td><span class="mean">3.60</span><span class="sem">&plusmn; 0.14</span></td>
+              <td class="duplexgen-column"><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.21</span></td>
+              <td class="naturalness-divider"><span class="mean">3.60</span><span class="sem">&plusmn; 0.14</span></td>
               <td><span class="mean">3.49</span><span class="sem">&plusmn; 0.12</span></td>
-              <td><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
             </tr>
             <tr>
-              <th class="scenario" scope="row">SOC</th>
+              <th class="scenario" scope="row">
+                <abbr title="Social Chat" aria-label="SOC: Social Chat" tabindex="0">SOC</abbr>
+              </th>
               <td><span class="mean">3.64</span><span class="sem">&plusmn; 0.29</span></td>
               <td><span class="mean">3.72</span><span class="sem">&plusmn; 0.30</span></td>
-              <td><strong class="mean">3.92</strong><span class="sem">&plusmn; 0.26</span></td>
-              <td><span class="mean">3.46</span><span class="sem">&plusmn; 0.13</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.92</strong><span class="sem">&plusmn; 0.26</span></td>
+              <td class="naturalness-divider"><span class="mean">3.46</span><span class="sem">&plusmn; 0.13</span></td>
               <td><span class="mean">3.57</span><span class="sem">&plusmn; 0.11</span></td>
-              <td><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.10</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.10</span></td>
             </tr>
             <tr class="average">
               <th class="scenario" scope="row">Avg.</th>
               <td><span class="mean">2.61</span><span class="sem">&plusmn; 0.12</span></td>
               <td><span class="mean">3.41</span><span class="sem">&plusmn; 0.12</span></td>
-              <td><strong class="mean">3.55</strong><span class="sem">&plusmn; 0.12</span></td>
-              <td><span class="mean">3.48</span><span class="sem">&plusmn; 0.05</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.55</strong><span class="sem">&plusmn; 0.12</span></td>
+              <td class="naturalness-divider"><span class="mean">3.48</span><span class="sem">&plusmn; 0.05</span></td>
               <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.05</span></td>
-              <td><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.05</span></td>
+              <td class="duplexgen-column"><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.05</span></td>
             </tr>
           </tbody>
         </table>
@@ -546,7 +759,8 @@
         </p>
         <p>
           <strong>Synthesized data shapes full-duplex behavior.</strong> A full-duplex model
-          (<strong>PP-DG</strong>) fine-tuned on DuplexGen dialogues exhibits distinctive,
+          (<strong>PersonaPlex + DuplexGen</strong>) fine-tuned on DuplexGen dialogues exhibits
+          distinctive,
           human-preferred turn-taking that adapts per scenario, and is rated significantly more
           natural than the Moshi and PersonaPlex baselines.
         </p>
@@ -559,7 +773,7 @@
   </section>
 
   <!-- BibTeX -->
-  <section class="section" id="BibTeX" style="background-color:#fafafa;">
+  <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <h2 class="title is-3">BibTeX</h2>
       <pre><code>@misc{kim2026duplexgenadaptivesynthesishumanai,
@@ -600,7 +814,7 @@
   </footer>
 
   <script>
-    function createWaveSurfer(containerId, audioPath) {
+    function createWaveSurfer(containerId, audioPath, sampleLabel) {
       const ws = WaveSurfer.create({
         container: containerId,
         waveColor: "#b5c7e6",
@@ -616,24 +830,60 @@
         containerEl.style.cursor = "pointer";
         containerEl.addEventListener("click", () => ws.playPause());
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = "wave-play";
-        btn.innerHTML = '<i class="fa fa-play"></i>&nbsp;/&nbsp;<i class="fa fa-pause"></i> Play';
         btn.addEventListener("click", () => ws.playPause());
         containerEl.insertAdjacentElement("afterend", btn);
+
+        const setButtonState = (isPlaying) => {
+          const action = isPlaying ? "Pause" : "Play";
+          const icon = isPlaying ? "pause" : "play";
+          btn.innerHTML = '<i class="fa fa-' + icon + '" aria-hidden="true"></i>&nbsp; ' + action;
+          btn.setAttribute("aria-label", action + " " + sampleLabel + " audio sample");
+          btn.setAttribute("aria-pressed", String(isPlaying));
+        };
+
+        setButtonState(false);
+        ws.on("play", () => setButtonState(true));
+        ws.on("pause", () => setButtonState(false));
+        ws.on("finish", () => setButtonState(false));
       }
       return ws;
     }
 
     var scenarios = ["TEA", "PLN", "INT", "NEG", "PER", "SOC"];
+    var scenarioNames = {
+      TEA: "TEA Socratic Teaching",
+      PLN: "PLN Task Planning",
+      INT: "INT Interview",
+      NEG: "NEG Negotiation",
+      PER: "PER Persuasion",
+      SOC: "SOC Social Chat"
+    };
     var players = {};
     scenarios.forEach((code) => {
-      players[code] = createWaveSurfer(`#wave_${code}`, `static/audio/${code}.mp3`);
+      players[code] = createWaveSurfer(
+        `#wave_${code}`,
+        `static/audio/${code}.mp3`,
+        scenarioNames[code]
+      );
     });
 
     // Render the ASR transcript for each corpus sample as selectable chat bubbles.
     scenarios.forEach((code) => {
       var el = document.getElementById("tr_" + code);
       if (el) el.innerHTML = renderTranscript(code, window.SAMPLE_TRANSCRIPTS);
+    });
+
+    document.querySelectorAll(".transcript-toggle").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        var transcript = document.getElementById(btn.getAttribute("aria-controls"));
+        if (!transcript) return;
+        var isExpanded = btn.getAttribute("aria-expanded") === "true";
+        transcript.hidden = isExpanded;
+        btn.setAttribute("aria-expanded", String(!isExpanded));
+        btn.textContent = isExpanded ? "Show transcript" : "Hide transcript";
+      });
     });
 
     function escapeHtml(s) {
