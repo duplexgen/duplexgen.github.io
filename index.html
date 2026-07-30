@@ -342,13 +342,13 @@
     .cmp-transcript > .tr-caption { font-size: 0.7rem; color: #999; margin-bottom: 0.5rem; }
     .cmp-tr { max-height: 460px; overflow-y: auto; padding-right: 0.3rem; }
     .cmp-turn { display: flex; margin-bottom: 0.5rem; }
-    .cmp-turn.ai { justify-content: flex-end; }
+    .cmp-turn.assistant { justify-content: flex-end; }
     .cmp-bubble {
       max-width: 88%; border-radius: 12px; padding: 0.45rem 0.7rem;
       border: 1px solid #ccc; font-size: 0.82rem; line-height: 1.35;
     }
     .cmp-turn.human .cmp-bubble { background: #fff; border-color: #d2d2d2; }
-    .cmp-turn.ai .cmp-bubble { background: #ebebeb; border-color: #c2c2c2; }
+    .cmp-turn.assistant .cmp-bubble { background: #ebebeb; border-color: #c2c2c2; }
     .cmp-bubble .who {
       display: block; font-size: 0.66rem; font-weight: 700; color: #6e6e6e;
       margin-bottom: 0.15rem; letter-spacing: 0.01em;
@@ -1299,7 +1299,7 @@
       segs.forEach(function (seg) {
         var isAI = seg.speaker === "AI Assistant";
         var head = seg.speaker + "  [" + fmtTime(seg.start) + " – " + fmtTime(seg.end) + "]";
-        out += '<div class="cmp-turn ' + (isAI ? "ai" : "human") + '">' +
+        out += '<div class="cmp-turn ' + (isAI ? "assistant" : "human") + '">' +
                '<div class="cmp-bubble"><span class="who ' + (isAI ? "lbl-ai" : "lbl-human") + '">' +
                escapeHtml(head) + '</span>' +
                '<span class="txt">' + escapeHtml(seg.text) + '</span></div></div>';
