@@ -32,6 +32,10 @@
     }
     .author-list { gap: 0.15rem 0.55rem; }
     .affiliation-list { gap: 0.2rem 1rem; }
+    .affiliation-break {
+      flex-basis: 100%;
+      height: 0;
+    }
     .author-list .author-block,
     .affiliation-list .author-block { margin-right: 0; }
     @media screen and (min-width: 769px) {
@@ -222,6 +226,8 @@
       box-shadow: 2px 0 0 #e4e8ef;
     }
     .performance-table thead .scenario { z-index: 6; }
+    .performance-table tbody .scenario:hover,
+    .performance-table tbody .scenario:focus-within { z-index: 30; }
     .performance-table tbody tr:hover > .scenario { background: #f7f9fc; }
     .performance-table tbody tr.average > .scenario { background: #fafafa; }
     .performance-table .scenario abbr {
@@ -414,6 +420,7 @@
         font-size: 0.85rem !important;
         line-height: 1.45;
       }
+      .affiliation-break { display: none; }
       .motivation-callout {
         padding: 1.1rem 1.15rem;
       }
@@ -461,6 +468,7 @@
               <span class="author-block"><sup>1</sup>University of Illinois Urbana-Champaign</span>
               <span class="author-block"><sup>2</sup>Seoul National University</span>
               <span class="author-block"><sup>3</sup>Columbia University</span>
+              <span class="affiliation-break" aria-hidden="true"></span>
               <span class="author-block"><sup>4</sup>University of California, Berkeley</span>
               <span class="author-block"><sup>5</sup>Georgia Institute of Technology</span>
             </div>
@@ -614,7 +622,7 @@
         </div>
         <div class="pipeline-stage">
           <span class="stage-number">2</span><strong>Turn-Taking Slot Identification.</strong>
-          Heuristics and an LLM mark candidate intra-utterance action slots &mdash; the points
+          Heuristics and an LLM mark candidate intra-utterance action slots, the points
           where the AI could take the floor, backchannel, or keep listening.
         </div>
         <div class="pipeline-stage">
@@ -626,9 +634,9 @@
         <div class="pipeline-stage">
           <span class="stage-number">4</span><strong>Scenario-Adaptive Dialogue Synthesis.</strong>
           The predictor calibrated for the target scenario is applied slot-by-slot to insert the
-          AI's turn-taking behavior &mdash; <strong>floor-taking</strong>,
-          <strong>backchanneling</strong>, or <strong>silence</strong> &mdash; yielding a full
-          turn-taking dialogue.
+          AI's turn-taking behavior: <strong>floor-taking</strong>,
+          <strong>backchanneling</strong>, or <strong>silence</strong>, yielding a full turn-taking
+          dialogue.
         </div>
         <p class="is-size-7" style="margin-top:0.75rem;color:#666;">
           For listening tests, synthesized dialogues are rendered to full-duplex speech with
@@ -652,7 +660,7 @@
       <div class="columns">
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-info">TEA &mdash; Socratic Teaching</p>
+            <p class="scenario-tag has-text-info">TEA: Socratic Teaching</p>
             <p>Guided knowledge discovery, where the tutor leads a student through a problem
               rather than giving the answer.</p>
             <p class="is-size-7 has-text-grey">Source: SocraticLM</p>
@@ -660,7 +668,7 @@
         </div>
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-info">PLN &mdash; Mixed-Initiative Planning</p>
+            <p class="scenario-tag has-text-info">PLN: Mixed-Initiative Planning</p>
             <p>Collaborative goal completion, gathering information and comparing options toward
               a plan.</p>
             <p class="is-size-7 has-text-grey">Source: MultiWOZ</p>
@@ -668,7 +676,7 @@
         </div>
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-info">INT &mdash; Interview</p>
+            <p class="scenario-tag has-text-info">INT: Interview</p>
             <p>Structured information elicitation through open-ended questions and follow-up
               probing.</p>
             <p class="is-size-7 has-text-grey">Source: Anthropic Interviewer</p>
@@ -680,22 +688,22 @@
       <div class="columns">
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-danger">NEG &mdash; Negotiation</p>
-            <p>Resource allocation under conflict &mdash; bargaining over price and terms toward
+            <p class="scenario-tag has-text-danger">NEG: Negotiation</p>
+            <p>Resource allocation under conflict: bargaining over price and terms toward
               a deal.</p>
             <p class="is-size-7 has-text-grey">Source: CraigslistBargain</p>
           </div>
         </div>
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-danger">PER &mdash; Persuasion</p>
+            <p class="scenario-tag has-text-danger">PER: Persuasion</p>
             <p>Attitude-change attempts, steering the other party toward a position or action.</p>
             <p class="is-size-7 has-text-grey">Source: DailyPersuasion</p>
           </div>
         </div>
         <div class="column">
           <div class="box scenario-card">
-            <p class="scenario-tag has-text-danger">SOC &mdash; Social Chat</p>
+            <p class="scenario-tag has-text-danger">SOC: Social Chat</p>
             <p>Peer-like conversation with everyday, emotionally charged give-and-take.</p>
             <p class="is-size-7 has-text-grey">Source: SODA</p>
           </div>
@@ -718,7 +726,7 @@
       <div class="columns is-multiline" style="margin-top:1rem;">
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>TEA</strong> &mdash; Socratic Teaching</p>
+            <p class="sample-title"><strong>TEA</strong>: Socratic Teaching</p>
             <div id="wave_TEA" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_TEA">Show transcript</button>
@@ -727,7 +735,7 @@
         </div>
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>PLN</strong> &mdash; Mixed-Initiative Planning</p>
+            <p class="sample-title"><strong>PLN</strong>: Mixed-Initiative Planning</p>
             <div id="wave_PLN" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_PLN">Show transcript</button>
@@ -736,7 +744,7 @@
         </div>
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>INT</strong> &mdash; Interview</p>
+            <p class="sample-title"><strong>INT</strong>: Interview</p>
             <div id="wave_INT" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_INT">Show transcript</button>
@@ -745,7 +753,7 @@
         </div>
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>NEG</strong> &mdash; Negotiation</p>
+            <p class="sample-title"><strong>NEG</strong>: Negotiation</p>
             <div id="wave_NEG" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_NEG">Show transcript</button>
@@ -754,7 +762,7 @@
         </div>
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>PER</strong> &mdash; Persuasion</p>
+            <p class="sample-title"><strong>PER</strong>: Persuasion</p>
             <div id="wave_PER" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_PER">Show transcript</button>
@@ -763,7 +771,7 @@
         </div>
         <div class="column is-half">
           <div class="cmp-card">
-            <p class="sample-title"><strong>SOC</strong> &mdash; Social Chat</p>
+            <p class="sample-title"><strong>SOC</strong>: Social Chat</p>
             <div id="wave_SOC" class="waveform"></div>
             <button class="transcript-toggle" type="button" aria-expanded="false"
                     aria-controls="transcript_SOC">Show transcript</button>
@@ -772,7 +780,7 @@
         </div>
       </div>
       <p class="has-text-centered is-size-7" style="margin-top:0.5rem;">
-        Each waveform is dual-channel &mdash; <strong>top:</strong> <span class="lbl-human">human</span>,
+        Each waveform is dual-channel: <strong>top:</strong> <span class="lbl-human">human</span>,
         <strong>bottom:</strong> <span class="lbl-ai">AI assistant</span>. Click a waveform to play.
       </p>
     </div>
@@ -917,7 +925,7 @@
       <div class="content has-text-justified">
         <p>
           <strong>Turn-taking preferences differ by scenario.</strong> Human annotations show
-          significantly different action distributions across nearly all scenario pairs &mdash;
+          significantly different action distributions across nearly all scenario pairs:
           backchanneling is more frequent in cooperative tasks, floor-taking in competitive ones.
         </p>
         <p>
@@ -1248,7 +1256,7 @@
     function escapeHtml(s) {
       return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
-    // m:ss[.s] — tenths matter here: overlaps and backchannels are often shorter
+    // m:ss[.s]: tenths matter here because overlaps and backchannels are often shorter
     // than a second, and whole-second rounding collapsed them to empty spans.
     // A trailing ".0" carries no information, so drop it for readability.
     function fmtTime(sec) {
