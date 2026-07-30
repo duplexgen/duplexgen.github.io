@@ -1030,6 +1030,9 @@
 
   <script>
     var players = {};
+    var useIOSAudioFallback =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
     function pauseOtherPlayers(activeCode) {
       Object.keys(players).forEach((code) => {
@@ -1046,6 +1049,7 @@
         responsive: true,
         normalize: true,
         splitChannels: true,
+        backend: useIOSAudioFallback ? "MediaElement" : "WebAudio",
       });
       const containerEl = document.querySelector(containerId);
       var loadState = "idle";
@@ -1060,9 +1064,9 @@
         btn.classList.remove("is-error");
 
         if (loadState === "loading") {
-          action = "Loading\u2026";
-          icon = "spinner fa-spin";
-          btn.disabled = true;
+          action = useIOSAudioFallback ? "Tap to play" : "Loading\u2026";
+          icon = useIOSAudioFallback ? "play" : "spinner fa-spin";
+          btn.disabled = !useIOSAudioFallback;
         } else if (loadState === "error") {
           action = "Audio unavailable";
           icon = "exclamation-triangle";
@@ -1085,17 +1089,32 @@
         ws.load(audioPath);
       };
 
+      const startPlayback = () => {
+        pauseOtherPlayers(code);
+        var playback = ws.play();
+        if (playback && typeof playback.catch === "function") {
+          playback.catch(() => {
+            isPlaying = false;
+            setButtonState();
+          });
+        }
+      };
+
       const togglePlayback = () => {
         if (loadState === "idle") {
           loadAudio();
+          if (useIOSAudioFallback) startPlayback();
+          return;
+        }
+        if (loadState === "loading") {
+          if (useIOSAudioFallback) startPlayback();
           return;
         }
         if (loadState !== "ready") return;
         if (isPlaying) {
           ws.pause();
         } else {
-          pauseOtherPlayers(code);
-          ws.play();
+          startPlayback();
         }
       };
 
@@ -1126,7 +1145,8 @@
         isPlaying = false;
         setButtonState();
       });
-      ws.on("error", () => {
+      ws.on("error", (message) => {
+        if (useIOSAudioFallback && message === "Error decoding audiobuffer") return;
         loadState = "error";
         isPlaying = false;
         setButtonState();
