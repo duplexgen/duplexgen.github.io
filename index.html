@@ -19,7 +19,6 @@
 
   <script defer src="static/js/fontawesome.all.min.js"></script>
   <script src="static/js/wavesurfer.js"></script>
-  <script src="static/js/comparison_transcripts.js"></script>
   <script src="static/js/sample_transcripts.js"></script>
 
   <style>
@@ -43,50 +42,70 @@
       font-size: 0.78rem; line-height: 1.5; color: #666; margin-top: 0.6rem;
     }
 
-    /* Model-comparison accordion */
-    #comparison-accordion { margin-top: 1.5rem; }
-    .cmp-panel {
-      background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
-      margin-bottom: 0.75rem; overflow: hidden;
+    .performance-table-wrap {
+      margin-top: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
     }
-    .cmp-panel-header {
-      width: 100%; text-align: left; cursor: pointer; border: none;
-      background: #fff; padding: 1rem 1.25rem; display: flex; align-items: center;
-      gap: 0.6rem; font-size: 1.1rem; font-weight: 600; color: #363636;
+    .performance-table {
+      min-width: 760px;
+      table-layout: auto;
+      font-size: 0.9rem;
     }
-    .cmp-panel-header:hover { background: #f5f8ff; }
-    .cmp-panel.is-open .cmp-panel-header { border-bottom: 1px solid #eee; }
-    .cmp-panel-header .chevron {
-      margin-left: auto; transition: transform 0.2s ease; color: #3273dc; flex: none;
+    .performance-table caption {
+      caption-side: bottom;
+      padding: 0.85rem 0.5rem 0;
+      color: #666;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      text-align: left;
     }
-    .cmp-panel.is-open .cmp-panel-header .chevron { transform: rotate(90deg); }
-    .cmp-panel-header .role-pill {
-      display: inline-block; background: #eef2fb; color: #3273dc;
-      border-radius: 999px; padding: 0.1rem 0.7rem; font-size: 0.8rem;
-      font-weight: 600; vertical-align: middle;
+    .performance-table th,
+    .performance-table td {
+      padding: 0.55rem 0.65rem;
+      text-align: center;
+      vertical-align: middle;
     }
-    .cmp-panel-body { display: none; padding: 1rem 1.25rem 1.25rem; }
-    .cmp-panel.is-open .cmp-panel-body { display: block; }
-    .cmp-context-text { color: #444; margin-bottom: 1rem; }
+    .performance-table thead th {
+      color: #363636;
+    }
+    .performance-table .metric-group {
+      border-bottom: 2px solid #3273dc;
+    }
+    .performance-table .scenario {
+      width: 5rem;
+      font-weight: 700;
+      text-align: left;
+    }
+    .performance-table .mean,
+    .performance-table .sem {
+      display: block;
+      white-space: nowrap;
+    }
+    .performance-table .sem {
+      margin-top: 0.08rem;
+      color: #777;
+      font-size: 0.72rem;
+      font-weight: 400;
+    }
+    .performance-table tr.section-break > * {
+      border-top: 2px solid #cfd6df;
+    }
+    .performance-table tr.average > * {
+      border-top: 2px solid #7a7a7a;
+      background: #fafafa;
+    }
+
     .cmp-card {
       background: #fff; border: 1px solid #e6e6e6; border-radius: 8px;
       padding: 0.9rem; height: 100%; display: flex; flex-direction: column;
     }
-    .cmp-card.is-ours { border: 2px solid #3273dc; box-shadow: 0 2px 10px rgba(50,115,220,0.12); }
-    .cmp-model { font-weight: 700; font-size: 1.05rem; }
-    .cmp-badge {
-      display: inline-block; border-radius: 999px; padding: 0.05rem 0.55rem;
-      font-size: 0.7rem; font-weight: 600; margin-left: 0.4rem; vertical-align: middle;
-    }
-    .cmp-badge.ours { background: #3273dc; color: #fff; }
-    .cmp-wave-label { font-size: 0.7rem; color: #999; margin-bottom: 0.15rem; }
-    .cmp-waveform { width: 100%; }
-    .cmp-play, .wave-play {
+    .wave-play {
       display: block; width: 100%; margin-top: 0.4rem; border: none;
       background: #3273dc; color: #fff; border-radius: 6px;
       padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem;
     }
-    .cmp-play:hover, .wave-play:hover { background: #2759bb; }
+    .wave-play:hover { background: #2759bb; }
     /* Selectable text transcript (bubbles) */
     .cmp-transcript {
       margin-top: 0.7rem; border-top: 1px solid #eee; padding-top: 0.6rem;
@@ -414,25 +433,97 @@
   <section class="section">
     <div class="container is-max-widescreen">
       <h2 class="title is-3 has-text-centered">Full-Duplex Model: Baselines vs. PP-DG</h2>
-      <p class="subtitle is-6 has-text-centered">
-        Live full-duplex dialogues from two baselines (<strong>Moshi</strong>,
-        <strong>PersonaPlex</strong>) and <strong>PP-DG</strong> &mdash; PersonaPlex
-        fine-tuned on DuplexGen-synthesized data. In our listening test (three human
-        raters per dialogue), PP-DG's scenario-adaptive turn-taking was rated the most
-        natural, significantly ahead of both baselines. Click a scenario to expand it
-        and listen for the difference.
-      </p>
-
-      <div id="comparison-accordion">
-        <!-- panels injected by JS -->
+      <div class="performance-table-wrap">
+        <table class="table is-fullwidth performance-table">
+          <caption id="performance-caption">
+            Multi-turn dialogue evaluation on a 5-point Likert scale. Instruction Following is
+            rated by <strong>GPT-4.1</strong> from transcripts; Turn-Taking Naturalness is rated
+            by <strong>humans</strong> via a listening test, since context-appropriate turn-taking
+            is hard for LLMs to judge but natural for humans. Values are mean &plusmn; standard
+            error of the mean.
+          </caption>
+          <thead>
+            <tr>
+              <th class="scenario" scope="col" rowspan="2">Scenario</th>
+              <th class="metric-group" scope="colgroup" colspan="3">Instruction Following</th>
+              <th class="metric-group" scope="colgroup" colspan="3">Turn-Taking Naturalness</th>
+            </tr>
+            <tr>
+              <th scope="col">Moshi</th>
+              <th scope="col"><abbr title="PersonaPlex">PP</abbr></th>
+              <th scope="col">PP-DG</th>
+              <th scope="col">Moshi</th>
+              <th scope="col"><abbr title="PersonaPlex">PP</abbr></th>
+              <th scope="col">PP-DG</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th class="scenario" scope="row">TEA</th>
+              <td><span class="mean">1.44</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><span class="mean">2.96</span><span class="sem">&plusmn; 0.26</span></td>
+              <td><strong class="mean">3.40</strong><span class="sem">&plusmn; 0.29</span></td>
+              <td><span class="mean">3.09</span><span class="sem">&plusmn; 0.15</span></td>
+              <td><span class="mean">3.37</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
+            </tr>
+            <tr>
+              <th class="scenario" scope="row">PLN</th>
+              <td><span class="mean">1.40</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><strong class="mean">2.04</strong><span class="sem">&plusmn; 0.16</span></td>
+              <td><span class="mean">1.72</span><span class="sem">&plusmn; 0.14</span></td>
+              <td><span class="mean">3.59</span><span class="sem">&plusmn; 0.13</span></td>
+              <td><span class="mean">3.73</span><span class="sem">&plusmn; 0.10</span></td>
+              <td><strong class="mean">3.76</strong><span class="sem">&plusmn; 0.09</span></td>
+            </tr>
+            <tr>
+              <th class="scenario" scope="row">INT</th>
+              <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.23</span></td>
+              <td><span class="mean">3.76</span><span class="sem">&plusmn; 0.28</span></td>
+              <td><strong class="mean">4.09</strong><span class="sem">&plusmn; 0.32</span></td>
+              <td><strong class="mean">3.68</strong><span class="sem">&plusmn; 0.10</span></td>
+              <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.11</span></td>
+              <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.12</span></td>
+            </tr>
+            <tr class="section-break">
+              <th class="scenario" scope="row">NEG</th>
+              <td><span class="mean">2.12</span><span class="sem">&plusmn; 0.22</span></td>
+              <td><span class="mean">4.00</span><span class="sem">&plusmn; 0.25</span></td>
+              <td><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.20</span></td>
+              <td><span class="mean">3.46</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><span class="mean">3.60</span><span class="sem">&plusmn; 0.10</span></td>
+              <td><strong class="mean">3.63</strong><span class="sem">&plusmn; 0.12</span></td>
+            </tr>
+            <tr>
+              <th class="scenario" scope="row">PER</th>
+              <td><span class="mean">3.12</span><span class="sem">&plusmn; 0.31</span></td>
+              <td><span class="mean">3.96</span><span class="sem">&plusmn; 0.30</span></td>
+              <td><strong class="mean">4.12</strong><span class="sem">&plusmn; 0.21</span></td>
+              <td><span class="mean">3.60</span><span class="sem">&plusmn; 0.14</span></td>
+              <td><span class="mean">3.49</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><strong class="mean">3.75</strong><span class="sem">&plusmn; 0.11</span></td>
+            </tr>
+            <tr>
+              <th class="scenario" scope="row">SOC</th>
+              <td><span class="mean">3.64</span><span class="sem">&plusmn; 0.29</span></td>
+              <td><span class="mean">3.72</span><span class="sem">&plusmn; 0.30</span></td>
+              <td><strong class="mean">3.92</strong><span class="sem">&plusmn; 0.26</span></td>
+              <td><span class="mean">3.46</span><span class="sem">&plusmn; 0.13</span></td>
+              <td><span class="mean">3.57</span><span class="sem">&plusmn; 0.11</span></td>
+              <td><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.10</span></td>
+            </tr>
+            <tr class="average">
+              <th class="scenario" scope="row">Avg.</th>
+              <td><span class="mean">2.61</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><span class="mean">3.41</span><span class="sem">&plusmn; 0.12</span></td>
+              <td><strong class="mean">3.55</strong><span class="sem">&plusmn; 0.12</span></td>
+              <td><span class="mean">3.48</span><span class="sem">&plusmn; 0.05</span></td>
+              <td><span class="mean">3.56</span><span class="sem">&plusmn; 0.05</span></td>
+              <td><strong class="mean">3.69</strong><span class="sem">&plusmn; 0.05</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-      <p class="has-text-centered is-size-7" style="margin-top:0.75rem;">
-        Each waveform is dual-channel &mdash; <strong>top:</strong> <span class="lbl-human">user simulator</span>,
-        <strong>bottom:</strong> <span class="lbl-ai">AI assistant</span>. The user side is
-        played by a user simulator, not a live human, so that all three models face the same
-        interlocutor. Click a waveform or the play button to listen.
-      </p>
     </div>
   </section>
 
@@ -539,54 +630,11 @@
       players[code] = createWaveSurfer(`#wave_${code}`, `static/audio/${code}.mp3`);
     });
 
-    // Render the ASR transcript for each corpus sample as selectable chat bubbles,
-    // reusing the comparison-section renderer and bubble styling.
+    // Render the ASR transcript for each corpus sample as selectable chat bubbles.
     scenarios.forEach((code) => {
       var el = document.getElementById("tr_" + code);
-      if (el) el.innerHTML = renderTranscript({ code: code }, null, window.SAMPLE_TRANSCRIPTS);
+      if (el) el.innerHTML = renderTranscript(code, window.SAMPLE_TRANSCRIPTS);
     });
-
-    /* ---- Baselines vs. PP-DG comparison carousel ---- */
-    // One representative dialogue per scenario. In the human evaluation (3
-    // annotators per clip), PP-DG's turn-taking was rated most natural on average
-    // across all six scenarios; these panels let readers hear the difference.
-    var CMP_SCENARIOS = [
-      {
-        code: "TEA", name: "Socratic Teaching", role: "AI tutor",
-        context: "Guiding a student through a GSM8K word problem &mdash; how many weeks it takes " +
-                 "Janet to save $1,000 at $25/hour &mdash; one reasoning step at a time."
-      },
-      {
-        code: "PLN", name: "Task Planning", role: "AI booking agent",
-        context: "Finding an inexpensive South African restaurant in Cambridge &mdash; offering " +
-                 "options, settling on a time, then reading the booking back to confirm it."
-      },
-      {
-        code: "INT", name: "Interview", role: "AI interviewer",
-        context: "A user-research interview probing how the interviewee uses AI in their daily " +
-                 "sailing-instruction routine."
-      },
-      {
-        code: "NEG", name: "Negotiation", role: "AI negotiator",
-        context: "Haggling over the price of a used mid-century-modern walnut dresser, probing " +
-                 "its condition and wear."
-      },
-      {
-        code: "PER", name: "Persuasion", role: "AI persuader",
-        context: "A back-and-forth on whether AI really benefits businesses, addressing a " +
-                 "skeptic's doubts about job loss and real-world value."
-      },
-      {
-        code: "SOC", name: "Social Chat", role: "AI chat companion",
-        context: "An emotional-support call &mdash; helping a distressed caller talk through an " +
-                 "unfair, hurtful conflict with a co-worker."
-      }
-    ];
-    var CMP_MODELS = [
-      { key: "moshi", name: "Moshi", kind: "baseline" },
-      { key: "pp", name: "PersonaPlex", kind: "baseline" },
-      { key: "ppft", name: "PP-DG", kind: "ours", label: "Ours" }
-    ];
 
     function escapeHtml(s) {
       return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -600,24 +648,15 @@
       var m = Math.floor(t / 60), s = t - 60 * m;
       return m + ":" + (s < 10 ? "0" : "") + s.toFixed(1).replace(/\.0$/, "");
     }
-    // Render one cell's transcript segments as selectable chat bubbles.
-    // For the comparison section, pass a model key (mkey) to index CMP_TRANSCRIPTS.
-    // For corpus samples, pass mkey=null and the SAMPLE_TRANSCRIPTS store, whose
-    // entries are keyed directly by scenario code.
-    function renderTranscript(sc, mkey, store) {
-      var byCat = store || window.CMP_TRANSCRIPTS || {};
-      var entry = byCat[sc.code];
-      var segs = (mkey == null ? entry : (entry && entry[mkey])) || [];
+    function renderTranscript(code, store) {
+      var segs = (store && store[code]) || [];
       if (!segs.length) {
         return '<div class="cmp-tr-empty">No intelligible speech detected.</div>';
       }
       var out = '<div class="cmp-tr">';
       segs.forEach(function (seg) {
         var isAI = seg.speaker === "AI Assistant";
-        // In the comparison section (mkey != null) the user side is a user simulator
-        // rather than a live human; corpus samples keep the "Human" label.
-        var who = (!isAI && mkey != null) ? "User Simulator" : seg.speaker;
-        var head = who + "  [" + fmtTime(seg.start) + " – " + fmtTime(seg.end) + "]";
+        var head = seg.speaker + "  [" + fmtTime(seg.start) + " – " + fmtTime(seg.end) + "]";
         out += '<div class="cmp-turn ' + (isAI ? "ai" : "human") + '">' +
                '<div class="cmp-bubble"><span class="who ' + (isAI ? "lbl-ai" : "lbl-human") + '">' +
                escapeHtml(head) + '</span>' +
@@ -626,90 +665,6 @@
       out += '</div>';
       return out;
     }
-
-    function createSplitWaveSurfer(containerSel, audioPath) {
-      var ws = WaveSurfer.create({
-        container: containerSel,
-        waveColor: "#b5c7e6",
-        progressColor: "#3273dc",
-        height: 42,
-        responsive: true,
-        normalize: true,
-        splitChannels: true
-      });
-      ws.load(audioPath);
-      return ws;
-    }
-
-    var cmpContainer = document.getElementById("comparison-accordion");
-    var cmpPlayers = {};
-    var initedPanels = {};
-
-    // Build the three model cards + waveforms for a panel the first time it opens.
-    // (Waveforms need a laid-out, visible container to measure their width, so we
-    //  defer creation until the panel is actually expanded.)
-    function initPanel(sc) {
-      if (initedPanels[sc.code]) return;
-      initedPanels[sc.code] = true;
-      CMP_MODELS.forEach(function (m) {
-        var wid = "cmpwave_" + sc.code + "_" + m.key;
-        var pid = "cmpplay_" + sc.code + "_" + m.key;
-        var ws = createSplitWaveSurfer("#" + wid, "static/demo/" + sc.code + "/" + m.key + ".mp3");
-        cmpPlayers[wid] = ws;
-        var waveEl = document.getElementById(wid);
-        if (waveEl) { waveEl.style.cursor = "pointer"; waveEl.addEventListener("click", function () { ws.playPause(); }); }
-        var btn = document.getElementById(pid);
-        if (btn) { btn.addEventListener("click", function () { ws.playPause(); }); }
-      });
-    }
-
-    CMP_SCENARIOS.forEach(function (sc, idx) {
-      var tagClass = (["NEG", "PER", "SOC"].indexOf(sc.code) >= 0) ? "has-text-danger" : "has-text-info";
-      var panel = document.createElement("div");
-      panel.className = "cmp-panel" + (idx === 0 ? " is-open" : "");
-
-      var html = "";
-      html += '<button type="button" class="cmp-panel-header">';
-      html += '  <span class="' + tagClass + '">' + sc.code + ' &mdash; ' + sc.name + '</span>';
-      html += '  <span class="role-pill">' + sc.role + '</span>';
-      html += '  <i class="fa fa-chevron-right chevron"></i>';
-      html += '</button>';
-      html += '<div class="cmp-panel-body">';
-      html += '  <p class="cmp-context-text">' + sc.context + '</p>';
-      html += '  <div class="columns">';
-      CMP_MODELS.forEach(function (m) {
-        var wid = "cmpwave_" + sc.code + "_" + m.key;
-        var pid = "cmpplay_" + sc.code + "_" + m.key;
-        html += '<div class="column">';
-        html += '  <div class="cmp-card ' + (m.kind === "ours" ? "is-ours" : "") + '">';
-        html += '    <div><span class="cmp-model">' + m.name + '</span>' +
-                (m.label ? '<span class="cmp-badge ours">' + m.label + '</span>' : '') + '</div>';
-        html += '    <div class="cmp-wave-label">top: <span class="lbl-human">user simulator</span> &nbsp;&middot;&nbsp; bottom: <span class="lbl-ai">AI</span></div>';
-        html += '    <div id="' + wid + '" class="cmp-waveform"></div>';
-        html += '    <button id="' + pid + '" class="cmp-play">' +
-                '<i class="fa fa-play"></i>&nbsp;/&nbsp;<i class="fa fa-pause"></i> Play</button>';
-        html += '    <div class="cmp-transcript">';
-        html += '      <p class="tr-caption">Transcript (per-channel ASR, WhisperX large-v3):</p>';
-        html += renderTranscript(sc, m.key);
-        html += '    </div>';
-        html += '  </div>';
-        html += '</div>';
-      });
-      html += '  </div>';
-      html += '</div>';
-      panel.innerHTML = html;
-      cmpContainer.appendChild(panel);
-
-      var header = panel.querySelector(".cmp-panel-header");
-      header.addEventListener("click", function () {
-        var opening = !panel.classList.contains("is-open");
-        panel.classList.toggle("is-open");
-        if (opening) initPanel(sc);
-      });
-    });
-
-    // First panel starts open, so draw its waveforms now.
-    if (CMP_SCENARIOS.length) initPanel(CMP_SCENARIOS[0]);
   </script>
 </body>
 
